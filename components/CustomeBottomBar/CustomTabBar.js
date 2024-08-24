@@ -94,8 +94,8 @@ function CustomTabBar() {
       case 'CNICTransfer':
         navigation.navigate('CNICTransfer');
         break;
-      case 'Home':
-        navigation.navigate('Home'); // Ensure you navigate to Home screen
+      case 'BackUp':
+        navigation.navigate('DownloadBackupScreen'); // Ensure you navigate to Home screen
         break;
       case 'Settings':
         navigation.navigate('Settings'); // Ensure you navigate to Settings screen
@@ -158,6 +158,25 @@ function CustomTabBar() {
             </TouchableOpacity>
             {/* Add more menu items as needed */}
           </View>
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Settings</Text>
+          </View>
+
+              <View style={styles.menuGrid}>
+                <TouchableOpacity 
+                  style={styles.menuItem} 
+                  onPress={() => {
+                    togglePopup();
+                    handleTabPress('BackUp');
+                  }}
+                >
+                  <View style={styles.iconBox}>
+                    <IconM name="dots-grid" size={24} color={activeTab === 'BackUp' ? '#000' : '#03a65a'} />
+                  </View>
+                  <Text style={styles.menuText}>Backup Data</Text>
+                </TouchableOpacity>
+                
+              </View>
         </Animated.View>
       </PanGestureHandler>
 

@@ -8,6 +8,7 @@ import CustomerLedger from './components/reports/CustomerLedger';
 import CreateInvoice from './components/invoice/CreateInvoice';
 import AddCustomerScreen from './components/customer/AddCustomerScreen';
 import AddItem from './components/invoice/AddItemScreen';
+import DownloadBackupScreen from './components/BackUp';
 
 const Stack = createStackNavigator();
 const themeColor = '#000';
@@ -106,6 +107,22 @@ function App() {
               headerStyle: styles.header,
             })}
           />
+          <Stack.Screen
+            name="DownloadBackupScreen"
+            component={DownloadBackupScreen}
+            options={({ navigation }) => ({
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeft}>
+                  <Icon name="arrow-back" size={24} color={themeColor} />
+                </TouchableOpacity>
+              ),
+              headerTitle: 'DownloadBackupScreen',
+              headerTitleStyle: styles.headerTitle,
+              headerStyle: styles.header,
+            })}
+          />
+        
           
         </Stack.Navigator>
       </View>
