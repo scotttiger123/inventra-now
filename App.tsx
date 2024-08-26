@@ -7,6 +7,7 @@ import CustomTabBar from './components/CustomeBottomBar/CustomTabBar';
 import CustomerLedger from './components/reports/CustomerLedger';
 import CreateInvoice from './components/invoice/CreateInvoice';
 import AddCustomerScreen from './components/customer/AddCustomerScreen';
+import ListCustomers from './components/customer/listCustomers';
 import AddItem from './components/invoice/AddItemScreen';
 import DownloadBackupScreen from './components/BackUp';
 
@@ -118,6 +119,21 @@ function App() {
                 </TouchableOpacity>
               ),
               headerTitle: 'DownloadBackupScreen',
+              headerTitleStyle: styles.headerTitle,
+              headerStyle: styles.header,
+            })}
+          />
+          <Stack.Screen
+            name="ListCustomers"
+            component={ListCustomers}
+            options={({ navigation }) => ({
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeft}>
+                  <Icon name="arrow-back" size={24} color={themeColor} />
+                </TouchableOpacity>
+              ),
+              headerTitle: 'Customers ',
               headerTitleStyle: styles.headerTitle,
               headerStyle: styles.header,
             })}

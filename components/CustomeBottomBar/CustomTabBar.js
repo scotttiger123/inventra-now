@@ -91,8 +91,8 @@ function CustomTabBar() {
       case 'BankTransfer':
         navigation.navigate('BankTransfer');
         break;
-      case 'CNICTransfer':
-        navigation.navigate('CNICTransfer');
+      case 'ListCustomers':
+        navigation.navigate('ListCustomers');
         break;
       case 'BackUp':
         navigation.navigate('DownloadBackupScreen'); // Ensure you navigate to Home screen
@@ -174,6 +174,18 @@ function CustomTabBar() {
                     <IconM name="dots-grid" size={24} color={activeTab === 'BackUp' ? '#000' : '#03a65a'} />
                   </View>
                   <Text style={styles.menuText}>Backup Data</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.menuItem} 
+                  onPress={() => {
+                    togglePopup();
+                    handleTabPress('ListCustomers');
+                  }}
+                >
+                  <View style={styles.iconBox}>
+                    <IconM name="dots-grid" size={24} color={activeTab === 'BackUp' ? '#000' : '#03a65a'} />
+                  </View>
+                  <Text style={styles.menuText}>Customers</Text>
                 </TouchableOpacity>
                 
               </View>
