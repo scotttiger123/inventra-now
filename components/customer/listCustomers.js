@@ -1,13 +1,15 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, Modal, TouchableHighlight } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchCustomers } from '../database/customers/fetchCustomers';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Share from 'react-native-share'; // Import Share
 
-const CustomerList = () => {
+const CustomerList = ({ navigation }) => {
   const [customers, setCustomers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -20,8 +22,10 @@ const CustomerList = () => {
     }, [])
   );
 
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filter customers based on the search query
+  const filteredCustomers = customers.filter(customer => 
+    customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    customer.phone.includes(searchQuery)
   );
 
   // Function to handle share
@@ -34,6 +38,32 @@ const CustomerList = () => {
       .then((res) => console.log('Share successful:', res))
       .catch((err) => console.error('Share failed:', err));
   };
+
+  // Function to handle actions
+  const handleAction = (action) => {
+    switch(action) {
+      case 'view':
+        navigation.navigate('CustomerDetail', { customer: selectedCustomer });
+        break;
+      case 'edit':
+        console.log('Edit', selectedCustomer);
+        break;
+      case 'delete':
+        console.log('Delete', selectedCustomer);
+        break;
+      default:
+        break;
+    }
+    setModalVisible(false);
+  };
+
+  const renderFooter = () => (
+    <View style={styles.footerContainer}>
+      <TouchableOpacity style={styles.addCustomer}>
+        <Text style={styles.buttonText}>ADD CUSTOMER</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -49,8 +79,8 @@ const CustomerList = () => {
         </View>
         <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
           <Text>
-            <Icon name="share" size={24} color="#007BFF" /> {/* Light color for the share button */}
-            </Text>
+            <Icon name="share" size={20} color="#007BFF" /> 
+          </Text>
         </TouchableOpacity>
       </View>
       <FlatList
@@ -67,11 +97,47 @@ const CustomerList = () => {
               <Text style={styles.nameText}>{item.name}</Text>
               <Text style={styles.phoneText}>{item.phone}</Text>
             </View>
+            <TouchableOpacity
+              style={styles.moreOptionsButton}
+              onPress={() => {
+                setSelectedCustomer(item);
+                setModalVisible(true);
+              }}
+            >
+              <Icon name="more-vert" size={20} color="#888" />
+            </TouchableOpacity>
             <View style={styles.bottomBorder} />
           </View>
         )}
         style={styles.listContainer}
       />
+      {renderFooter()}
+
+      {/* Custom Popup Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Customer Actions</Text>
+            <TouchableHighlight style={styles.modalButton} onPress={() => handleAction('view')}>
+              <Text style={styles.modalButtonText}>View Details</Text>
+            </TouchableHighlight>
+            <TouchableHighlight style={styles.modalButton} onPress={() => handleAction('edit')}>
+              <Text style={styles.modalButtonText}>Edit</Text>
+            </TouchableHighlight>
+            <TouchableHighlight style={styles.modalButton} onPress={() => handleAction('delete')}>
+              <Text style={styles.modalButtonText}>Delete</Text>
+            </TouchableHighlight>
+            <TouchableHighlight style={styles.modalButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableHighlight>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -97,19 +163,19 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     marginRight: 10,
+    marginLeft: 15,
   },
   searchInput: {
     flex: 1,
     height: 40,
     borderColor: 'transparent', // Remove border color
     borderWidth: 0, // Remove border width
-    borderRadius: 5,
     paddingHorizontal: 10,
     backgroundColor: '#fff',
-    fontSize: 14,
+    fontSize: 12,
   },
   shareButton: {
-    padding: 10,
+    padding: 5,
   },
   listContainer: {
     flex: 1,
@@ -153,6 +219,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
   },
+  moreOptionsButton: {
+    padding: 5,
+  },
+  moreOptionsIcon: {
+    color: '#888',
+  },
   bottomBorder: {
     height: 1,
     backgroundColor: '#e0e0e0',
@@ -160,6 +232,56 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 60,
     right: 20,
+  },
+  footerContainer: {
+    flexDirection: 'row',
+    padding: 16,
+    backgroundColor: '#fff', // Ensure footer background is white
+  },
+  addCustomer: {
+    backgroundColor: '#000', // WhatsApp's original color
+    padding: 8,
+    borderRadius: 20,
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0.5, // Subtle border width
+    borderColor: '#e0e0e0', // Subtle border color
+  },
+  buttonText: {
+    color: '#fff',
+    marginLeft: 8,
+    fontSize: 14, // Reduced font size
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalButton: {
+    width: '100%',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    fontSize: 16,
+    color: '#007BFF',
   },
 });
 

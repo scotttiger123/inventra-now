@@ -161,11 +161,11 @@ const AddItemScreen = ({ navigation, route }) => {
         <Text style={styles.toggleLabel}>Discount in {isPercentage ? 'Percentage' : 'Value'}:</Text>
         <View style={styles.switchContainer}>
         <Switch
-  value={isPercentage}
-  onValueChange={setIsPercentage}
-  trackColor={{ false: '#767577', true: '#808080' }} // Gray background when switched on
-  thumbColor={isPercentage ? '#00FF00' : '#f4f3f4'} // Green thumb when switched on
-/>
+          value={isPercentage}
+          onValueChange={setIsPercentage}
+          trackColor={{ false: '#767577', true: '#808080' }} // Gray background when switched on
+          thumbColor={isPercentage ? '#00FF00' : '#f4f3f4'} // Green thumb when switched on
+        />
         </View>
       </View>
       <TextInput
