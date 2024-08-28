@@ -1,7 +1,5 @@
-// components/LoginScreen.js
-
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 
 const themeColor = '#000';
 const lightTextColor = '#888'; // Lighter color for the text
@@ -9,10 +7,42 @@ const lightTextColor = '#888'; // Lighter color for the text
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Add login logic here
-    alert('Login button pressed');
+  const handleLogin = async () => {
+    setLoading(true); // Show loader
+    try {
+      // Replace with your login logic
+      const response = await fetch('https://lv.inventra.pk/api/loginApp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Login Successful', result.success || 'Login successful!');
+        navigation.navigate('Home'); // Navigate to Home screen
+      } else {
+        let errorMessage = 'Login Failed';
+        if (result.error) {
+          errorMessage = Object.values(result.error)
+            .flat()
+            .join('\n');
+        }
+        Alert.alert('Login Failed', errorMessage);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An error occurred. Please check your network connection and try again.');
+    } finally {
+      setLoading(false); // Hide loader
+    }
   };
 
   return (
@@ -43,7 +73,7 @@ const LoginScreen = ({ navigation }) => {
             secureTextEntry
           />
         </View>
-        
+
         <View style={styles.registerContainer}>
           <TouchableOpacity
             onPress={() => navigation.navigate('RegisterScreen')}
@@ -56,18 +86,25 @@ const LoginScreen = ({ navigation }) => {
         </View>
       </View>
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.button, styles.saveButton]}
-          onPress={handleLogin}
-        >
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.deleteButton]}
-          onPress={() => navigation.navigate('Home')}
-        >
-          <Text style={styles.buttonText}>Cancel</Text>
-        </TouchableOpacity>
+        {loading ? (
+          <ActivityIndicator size="large" color={themeColor} />
+        ) : (
+          <>
+            
+            <TouchableOpacity
+              style={[styles.button, styles.deleteButton]}
+              onPress={() => navigation.navigate('Home')}
+            >
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.saveButton]}
+              onPress={handleLogin}
+            >
+              <Text style={styles.buttonText}>Login</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );

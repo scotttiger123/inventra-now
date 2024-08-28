@@ -73,11 +73,19 @@ const RegisterScreen = ({ navigation }) => {
         >
             {({ handleChange, handleSubmit, values, errors, touched, isSubmitting }) => (
                 <View style={styles.container}>
-                    <Text style={styles.title}>Register</Text>
+                    
 
                     <View style={styles.inputContainer}>
                         <Text style={styles.label}>Email</Text>
                         <TextInput
+                           style={{
+                            borderBottomColor: '#ddd',
+                            borderBottomWidth: 1, // This is necessary to show the border
+                            padding: 10,
+                            fontSize: 12,
+                            
+                            color: '#000',
+                          }}
                             placeholder="Enter your email"
                             placeholderTextColor="#888"
                             value={values.email}
