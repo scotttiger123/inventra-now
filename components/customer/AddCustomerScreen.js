@@ -83,7 +83,7 @@ const AddCustomerScreen = ({ route }) => {
       <View style={styles.footer}>
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <IconM name="content-save" size={20} color="#fff" />
-        <Text style={styles.saveButtonText}>Save</Text>
+        <Text style={styles.saveButtonText}>SAVE</Text>
       </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

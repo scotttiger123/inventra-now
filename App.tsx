@@ -3,21 +3,26 @@ import { View, StyleSheet, Text, TouchableOpacity, Animated,ScrollView,Image,Dim
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+
 import CustomTabBar from './components/CustomeBottomBar/CustomTabBar';
 import CustomerLedger from './components/reports/CustomerLedger';
 import CreateInvoice from './components/invoice/CreateInvoice';
-import AddCustomerScreen from './components/customer/AddCustomerScreen';
+import AddCustomerScreen from './components/customer/addCustomerScreen';
 import ListCustomers from './components/customer/listCustomers';
 import AddItem from './components/invoice/AddItemScreen';
 import DownloadBackupScreen from './components/BackUp';
+import CustomerDetail from './components/customer/customerDetail';
+import EditCustomer from './components/customer/editCustomerScreen';
+
+import LoginScreen from './components/login/loginScreen';
+import RegisterScreen from './components/login/registerScreen';
+
 
 const Stack = createStackNavigator();
 const themeColor = '#000';
 
 const CustomTransition = ({ current }) => {
-
-
-  
 
   const translateX = current.progress.interpolate({
     inputRange: [0, 1],
@@ -138,6 +143,66 @@ function App() {
               headerStyle: styles.header,
             })}
           />
+          <Stack.Screen
+            name="CustomerDetail"
+            component={CustomerDetail}
+            options={({ navigation }) => ({
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeft}>
+                  <Icon name="arrow-back" size={24} color={themeColor} />
+                </TouchableOpacity>
+              ),
+              headerTitle: 'Customer Detail ',
+              headerTitleStyle: styles.headerTitle,
+              headerStyle: styles.header,
+            })}
+          />
+          <Stack.Screen
+            name="EditCustomer"
+            component={EditCustomer}
+            options={({ navigation }) => ({
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeft}>
+                  <Icon name="arrow-back" size={24} color={themeColor} />
+                </TouchableOpacity>
+              ),
+              headerTitle: 'Edit Customer',
+              headerTitleStyle: styles.headerTitle,
+              headerStyle: styles.header,
+            })}
+          />
+          <Stack.Screen
+            name="LoginScreen"
+            component={LoginScreen}
+            options={({ navigation }) => ({
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeft}>
+                  <Icon name="arrow-back" size={24} color={themeColor} />
+                </TouchableOpacity>
+              ),
+              headerTitle: 'Login here',
+              headerTitleStyle: styles.headerTitle,
+              headerStyle: styles.header,
+            })}
+          />
+          <Stack.Screen
+            name="RegisterScreen"
+            component={RegisterScreen}
+            options={({ navigation }) => ({
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeft}>
+                  <Icon name="arrow-back" size={24} color={themeColor} />
+                </TouchableOpacity>
+              ),
+              headerTitle: 'Register ',
+              headerTitleStyle: styles.headerTitle,
+              headerStyle: styles.header,
+            })}
+          />
         
           
         </Stack.Navigator>
@@ -146,7 +211,7 @@ function App() {
   );
 }
 
-function HomeScreen() {
+function HomeScreen({ navigation }) {
   const screenWidth = Dimensions.get('window').width; // Get the screen width
   const imageWidth = screenWidth * 1; // 80% of the screen width
   const imageHeight = imageWidth * 1; // Adjust height to maintain aspect ratio
@@ -157,6 +222,12 @@ function HomeScreen() {
 
   return (
     <View style={styles.homeContainer}>
+
+      {/* Login Button */}
+      <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('LoginScreen')}>
+        <AntDesign name="login" size={24} color="#000" />
+      </TouchableOpacity>
+
       <Text style={styles.welcomeText}>Welcome to Inventra!</Text>
       <ScrollView
         horizontal
@@ -176,6 +247,13 @@ function HomeScreen() {
 
 
 const styles = StyleSheet.create({
+  loginButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1,
+    padding: 10,
+  },
   dotContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -198,6 +276,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: themeColor,
     fontWeight: 'bold',
+    
   },
   header: {
     backgroundColor: '#fff',

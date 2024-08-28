@@ -3,6 +3,9 @@ import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, Modal, T
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchCustomers } from '../database/customers/fetchCustomers';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+
+
 import Share from 'react-native-share'; // Import Share
 
 const CustomerList = ({ navigation }) => {
@@ -38,7 +41,7 @@ const CustomerList = ({ navigation }) => {
       .then((res) => console.log('Share successful:', res))
       .catch((err) => console.error('Share failed:', err));
   };
-
+ 
   // Function to handle actions
   const handleAction = (action) => {
     switch(action) {
@@ -46,10 +49,8 @@ const CustomerList = ({ navigation }) => {
         navigation.navigate('CustomerDetail', { customer: selectedCustomer });
         break;
       case 'edit':
+        navigation.navigate('EditCustomer', { customer: selectedCustomer });
         console.log('Edit', selectedCustomer);
-        break;
-      case 'delete':
-        console.log('Delete', selectedCustomer);
         break;
       default:
         break;
@@ -57,9 +58,18 @@ const CustomerList = ({ navigation }) => {
     setModalVisible(false);
   };
 
+//
+
+
+
   const renderFooter = () => (
     <View style={styles.footerContainer}>
-      <TouchableOpacity style={styles.addCustomer}>
+    
+      <TouchableOpacity
+        style={styles.addCustomer}
+        onPress={() => navigation.navigate('AddCustomerScreen')}
+      >
+        <AntDesign name="plus" size={20} color="#fff" />
         <Text style={styles.buttonText}>ADD CUSTOMER</Text>
       </TouchableOpacity>
     </View>
@@ -122,15 +132,13 @@ const CustomerList = ({ navigation }) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
+            
             <Text style={styles.modalTitle}>Customer Actions</Text>
             <TouchableHighlight style={styles.modalButton} onPress={() => handleAction('view')}>
               <Text style={styles.modalButtonText}>View Details</Text>
             </TouchableHighlight>
             <TouchableHighlight style={styles.modalButton} onPress={() => handleAction('edit')}>
               <Text style={styles.modalButtonText}>Edit</Text>
-            </TouchableHighlight>
-            <TouchableHighlight style={styles.modalButton} onPress={() => handleAction('delete')}>
-              <Text style={styles.modalButtonText}>Delete</Text>
             </TouchableHighlight>
             <TouchableHighlight style={styles.modalButton} onPress={() => setModalVisible(false)}>
               <Text style={styles.modalButtonText}>Cancel</Text>
@@ -280,7 +288,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalButtonText: {
-    fontSize: 16,
+    fontSize: 12,
     color: '#007BFF',
   },
 });

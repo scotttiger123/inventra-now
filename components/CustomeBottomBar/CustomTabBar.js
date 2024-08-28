@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   },
   plusButtonContainer: {
     position: 'relative',
-    top: -30,
+    top: -35,
   },
   plusButton: {
     width: 70,
