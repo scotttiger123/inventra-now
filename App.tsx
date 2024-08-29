@@ -11,12 +11,14 @@ import CreateInvoice from './components/invoice/CreateInvoice';
 import AddCustomerScreen from './components/customer/addCustomerScreen';
 import ListCustomers from './components/customer/listCustomers';
 import AddItem from './components/invoice/AddItemScreen';
-import DownloadBackupScreen from './components/BackUp';
+// import DownloadBackupScreen from './components/database/BackUp';
 import CustomerDetail from './components/customer/customerDetail';
 import EditCustomer from './components/customer/editCustomerScreen';
 
 import LoginScreen from './components/login/loginScreen';
 import RegisterScreen from './components/login/registerScreen';
+import FetchInvoices from './components/invoice/fetchInvoices';
+import InvoiceDetails from './components/invoice/invoiceDetails';
 
 
 const Stack = createStackNavigator();
@@ -113,7 +115,7 @@ function App() {
               headerStyle: styles.header,
             })}
           />
-          <Stack.Screen
+          {/* <Stack.Screen
             name="DownloadBackupScreen"
             component={DownloadBackupScreen}
             options={({ navigation }) => ({
@@ -127,7 +129,7 @@ function App() {
               headerTitleStyle: styles.headerTitle,
               headerStyle: styles.header,
             })}
-          />
+          /> */}
           <Stack.Screen
             name="ListCustomers"
             component={ListCustomers}
@@ -199,6 +201,36 @@ function App() {
                 </TouchableOpacity>
               ),
               headerTitle: 'Register ',
+              headerTitleStyle: styles.headerTitle,
+              headerStyle: styles.header,
+            })}
+          />
+          <Stack.Screen
+            name="FetchInvoices"
+            component={FetchInvoices}
+            options={({ navigation }) => ({
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeft}>
+                  <Icon name="arrow-back" size={24} color={themeColor} />
+                </TouchableOpacity>
+              ),
+              headerTitle: 'Invoices',
+              headerTitleStyle: styles.headerTitle,
+              headerStyle: styles.header,
+            })}
+          />
+          <Stack.Screen
+            name="InvoiceDetails"
+            component={InvoiceDetails}
+            options={({ navigation }) => ({
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeft}>
+                  <Icon name="arrow-back" size={24} color={themeColor} />
+                </TouchableOpacity>
+              ),
+              headerTitle: 'Invoices Detail',
               headerTitleStyle: styles.headerTitle,
               headerStyle: styles.header,
             })}

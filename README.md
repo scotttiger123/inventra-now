@@ -79,3 +79,5 @@ To learn more about React Native, take a look at the following resources:
 - [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
 
 ======================== npx react-native run-ios =======================
+Date Calender issue
+https://www.npmjs.com/package/react-native-modal-datetime-picker?activeTab=readme

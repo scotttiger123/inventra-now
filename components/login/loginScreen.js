@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import config from '../config/config'; // Adjust the path to your config file
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
 const themeColor = '#000';
 const lightTextColor = '#888'; // Lighter color for the text
@@ -13,7 +15,8 @@ const LoginScreen = ({ navigation }) => {
     setLoading(true); // Show loader
     try {
       // Replace with your login logic
-      const response = await fetch('https://lv.inventra.pk/api/loginApp', {
+     
+        const response = await fetch(`${config.apiBaseUrl}/loginApp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -27,6 +30,11 @@ const LoginScreen = ({ navigation }) => {
       const result = await response.json();
 
       if (response.ok) {
+        if (result && result.user && result.user.id) {
+          // Save the user ID in AsyncStorage
+          await AsyncStorage.setItem('userId', result.user.id.toString());
+          console.log('User ID saved:', result.user.id.toString());
+        }
         Alert.alert('Login Successful', result.success || 'Login successful!');
         navigation.navigate('Home'); // Navigate to Home screen
       } else {

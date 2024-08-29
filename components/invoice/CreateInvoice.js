@@ -1,12 +1,16 @@
 import React, { useState,useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, Image,FlatList,  Dimensions } from 'react-native';
+import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, Image,FlatList,  Dimensions ,Animated} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import IconI from 'react-native-vector-icons/Ionicons';
 import IconM from 'react-native-vector-icons/MaterialCommunityIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { fetchCustomers } from '../database/customers/fetchCustomers';  // Adjust the import path as necessary
+import { saveInvoice } from '../database/invoices/saveInvoice'; // Adjust the import path as necessary
+import { countInvoices } from '../database/invoices/countInvoices'; // Adjust the import path as necessary
 
+
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 
 const CreateInvoice = () => {
@@ -20,16 +24,47 @@ const CreateInvoice = () => {
   const [total, setTotal] = useState(0);
   const [customers, setCustomers] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]); // State for filtered customers
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null);
+  const [focusedInput, setFocusedInput] = useState('');
+  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
+  
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
 
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirm = (date) => {
+    setDate(date.toISOString().split('T')[0]);
+    setDatePickerVisibility(false);
+    //console.warn("A date has been picked: ", date);
+    hideDatePicker();
+  };
+  
   const addItemToList = (newItem) => {
     setItems([...items, { ...newItem, id: items.length + 1 }]);
     setTotal(total + newItem.quantity * newItem.price);
   };
-
+  useEffect(() => {
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    setDate(formattedDate);
+    countInvoices()
+      .then(newInvoiceId => {
+        setInvoiceNo(newInvoiceId.toString());
+      })
+      .catch(error => {
+        console.error('Error fetching invoice ID:', error);
+      });
+  }, []);
   useEffect(() => {
     // Fetch customers when the component mounts
     fetchCustomers()
+    
       .then(data => setCustomers(data))
       .catch(error => console.error('Failed to fetch customers:', error));
   }, []);
@@ -55,6 +90,7 @@ const CreateInvoice = () => {
 
   const handleSelectCustomer = (customer) => {
     setCustomerName(customer.name); // Set the selected customer name
+    setSelectedCustomerId(customer.id);
     setFilteredCustomers([]); // Clear the filtered list after selection
     console.log('Selected Customer:', customer);
   };
@@ -70,9 +106,16 @@ const CreateInvoice = () => {
       setFilteredCustomers([]); // Clear the filtered list when input is cleared
     }
   };
+
   const handleSave = () => {
-    // Logic to save the invoice
-    console.log('Invoice saved');
+
+    saveInvoice(invoiceNo, date, customerName,selectedCustomerId, items, discount, total)
+      .then(message => {
+        console.log(message);
+      })
+      .catch(error => {
+        console.error(error);
+      });
   };
 
   const handleSaveAndNew = () => {
@@ -81,34 +124,56 @@ const CreateInvoice = () => {
     setInvoiceNo('');
     setDate('');
     setCustomerName('');
+    setSelectedCustomerId(null);
     setItems([]);
     setDiscount('');
     setTotal(0);
   };
-
+  
   return (
     <View style={styles.container}>
       {/* Invoice Details Section */}
       <View style={styles.row}>
         <View style={[styles.inputContainer, styles.inputContainerHalf]}>
-          <IconM name="file-find-outline" size={22} color="#333" style={styles.icon} />
+          <IconM name="file-find-outline" size={22} color="#888" style={styles.icon} />
           <TextInput
-            style={styles.input}
+              style={[
+                styles.input,
+                focusedInput === 'invoiceNo' && styles.inputFocused // Apply focused style conditionally
+              ]}
             placeholder="Invoice No"
             value={invoiceNo}
             onChangeText={setInvoiceNo}
+            onFocus={() => setFocusedInput('invoiceNo')}
+            onBlur={() => setFocusedInput('')}
           />
         </View>
         <View style={[styles.inputContainer, styles.inputContainerHalf]}>
-          <Icon name="calendar" size={20} color="#333" style={styles.icon} />
+          
+            <TouchableOpacity onPress={() => showDatePicker(true)}>
+            
+              <Icon name="calendar" size={20} color="#888" style={styles.icon} />
+            </TouchableOpacity>
+
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              focusedInput === 'date' && styles.inputFocused // Apply focused style conditionally
+            ]}
             placeholder="Date"
             value={date}
             onChangeText={setDate}
+            onFocus={() => setFocusedInput('date')}
+            onBlur={() => setFocusedInput('')}
           />
         </View>
       </View>
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleConfirm}
+        onCancel={hideDatePicker}
+      />
 
       {/* Customer Details Section */}
       <View style={styles.row}>
@@ -118,13 +183,19 @@ const CreateInvoice = () => {
             style={styles.addCustomerButton}
             onPress={() => navigation.navigate('AddCustomerScreen')}
           >
-            <IconM name="account-plus-outline" size={24} color="#000" />
+            <IconM name="account-plus-outline" size={24} color="#888" />
           </TouchableOpacity>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              focusedInput === 'customerName' && styles.inputFocused // Apply focused style conditionally
+            ]}
+            
             placeholder="Customer Name"
             value={customerName}
             onChangeText={handleCustomerSearch} // Updated to handle search
+            onFocus={() => setFocusedInput('customerName')}
+            onBlur={() => setFocusedInput('')}
           />
         </View>
       </View>
@@ -291,6 +362,10 @@ const CreateInvoice = () => {
 };
 
 const styles = StyleSheet.create({
+  inputFocused: {
+    borderBottomColor: '#007bff', // Set a color for the focused input
+    borderBottomWidth: 2, // Set the width of the bottom border
+  },
   customerListContainer: {
     position: 'absolute',
     top: 100,

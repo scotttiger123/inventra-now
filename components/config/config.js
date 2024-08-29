@@ -1,8 +1,6 @@
-
-// config.js
-
-const API_URL = 'https://hirenow.site'; // Your actual API URL
-
+// config/config.js
 export default {
-  API_URL,
+  apiBaseUrl: 'https://lv.inventra.pk/api', // Base URL for API requests
+  themeColor: '#000', // Define other configurations as needed
+  lightTextColor : '#888' // Lighter color for the text
 };

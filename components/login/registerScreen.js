@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import Spinner from 'react-native-loading-spinner-overlay';
 import config from '../config/config'; // Adjust the path to your config file
 
-const themeColor = '#000';
+
 
 const RegisterScreen = ({ navigation }) => {
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -16,7 +16,8 @@ const RegisterScreen = ({ navigation }) => {
     const handleRegister = async (values, { setSubmitting }) => {
         setLoading(true); // Show the loader
         try {
-            const response = await fetch(`https://lv.inventra.pk/api/register`, {
+            
+                const response = await fetch(`${config.apiBaseUrl}/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     button: {
         paddingVertical: 10,
         borderRadius: 25,
-        backgroundColor: themeColor,
+        backgroundColor: config.themeColor,
         alignItems: 'center',
         justifyContent: 'center',
         marginVertical: 20,
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     loginLinkText: {
-        color: themeColor,
+        color: config.themeColor,
         fontSize: 14,
         fontWeight: 'bold',
     },

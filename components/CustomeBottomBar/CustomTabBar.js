@@ -100,8 +100,8 @@ function CustomTabBar() {
       case 'Settings':
         navigation.navigate('Settings'); // Ensure you navigate to Settings screen
         break;
-      case 'Chat':
-        navigation.navigate('Chat'); // Ensure you navigate to Chat screen
+      case 'Invoices':
+        navigation.navigate('FetchInvoices'); // Ensure you navigate to Chat screen
         break;
       default:
         break;
@@ -210,9 +210,9 @@ function CustomTabBar() {
           <Icon name="settings" size={24} color={activeTab === 'Settings' ? '#000' : '#d3d3d3'} />
           <Text style={styles.tabText}>Settings</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem} onPress={() => handleTabPress('Chat')}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => handleTabPress('Invoices')}>
           <Icon name="chat" size={24} color={activeTab === 'Chat' ? '#000' : '#d3d3d3'} />
-          <Text style={styles.tabText}>Chat</Text>
+          <Text style={styles.tabText}>View </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
