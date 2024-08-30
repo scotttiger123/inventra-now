@@ -1,10 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import IconM from 'react-native-vector-icons/MaterialCommunityIcons';
 import { saveCustomer } from '../database/customers/saveCustomer'; // Adjust the path as needed
-
 
 const AddCustomerScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -29,7 +27,7 @@ const AddCustomerScreen = ({ route }) => {
         if (route.params?.onSave) {
           route.params.onSave({ name, phone, address });
         }
-        navigation.goBack();
+        navigation.navigate('CreateInvoice', { customer: { name, phone, address } }); // Pass data here
       })
       .catch(error => {
         Alert.alert('Error', error);
@@ -37,7 +35,24 @@ const AddCustomerScreen = ({ route }) => {
       });
   };
 
-
+  const handleSaveAndNew = () => {
+    saveCustomer(name, phone, address)
+      .then(() => {
+        Alert.alert('Success', 'Customer saved successfully');
+        // Reset form fields for new entry
+        setName('');
+        setPhone('');
+        setAddress('');
+        // Optionally focus on the name input field
+        if (nameInputRef.current) {
+          nameInputRef.current.focus();
+        }
+      })
+      .catch(error => {
+        Alert.alert('Error', error);
+        console.error('Error saving customer:', error);
+      });
+  };
 
   return (
     <KeyboardAvoidingView
@@ -81,10 +96,14 @@ const AddCustomerScreen = ({ route }) => {
         </View>
       </View>
       <View style={styles.footer}>
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <IconM name="content-save" size={20} color="#fff" />
-        <Text style={styles.saveButtonText}>SAVE</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+          <IconM name="content-save" size={20} color="#fff" />
+          <Text style={styles.saveButtonText}>SAVE</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.saveButton} onPress={handleSaveAndNew}>
+          <IconM name="content-save" size={20} color="#fff" />
+          <Text style={styles.saveButtonText}>SAVE & NEW</Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -140,11 +159,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'absolute',
-    bottom: 10,
-    left: 10,
-    right: 10,
-    marginHorizontal: 10,
     borderWidth: 0.5,
     borderColor: '#e0e0e0',
     elevation: 3, // Shadow for Android
@@ -152,12 +166,16 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
+    width: '48%', // Make each button take up half of the width with some margin
+    marginHorizontal: '1%', // Space between buttons
   },
+  
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
     marginLeft: 8,
   },
 });
+
 
 export default AddCustomerScreen;

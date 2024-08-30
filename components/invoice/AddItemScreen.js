@@ -17,6 +17,7 @@ const AddItemScreen = ({ navigation, route }) => {
   const [searchText, setSearchText] = useState('');
 
   const handleSave = () => {
+
     if (
       productName.trim() === '' ||
       isNaN(quantity) ||
@@ -41,6 +42,7 @@ const AddItemScreen = ({ navigation, route }) => {
       discount: discountAmount,
       uom,
     });
+    
     navigation.goBack();
   };
 

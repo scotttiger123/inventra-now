@@ -1,6 +1,8 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState,useEffect,useCallback } from 'react';
 import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, Image,FlatList,  Dimensions ,Animated} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+
+import {  useNavigation, useRoute } from '@react-navigation/native';
+
 import Icon from 'react-native-vector-icons/FontAwesome';
 import IconI from 'react-native-vector-icons/Ionicons';
 import IconM from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -8,7 +10,7 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import { fetchCustomers } from '../database/customers/fetchCustomers';  // Adjust the import path as necessary
 import { saveInvoice } from '../database/invoices/saveInvoice'; // Adjust the import path as necessary
 import { countInvoices } from '../database/invoices/countInvoices'; // Adjust the import path as necessary
-
+import { useFocusEffect } from '@react-navigation/native';
 
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
@@ -30,6 +32,24 @@ const CreateInvoice = () => {
   
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
+  const route = useRoute();
+  
+
+  useFocusEffect(
+    useCallback(() => {
+      // Fetch customers data
+      fetchCustomers()
+        .then((data) => setCustomers(data))
+        .catch((error) => console.error('Failed to fetch customers:', error));
+
+      // Check if there's customer data passed from another screen
+      // if (route.params?.customer) {
+      //   setCustomerName(route.params.customer.name || ''); // Adjust this based on the actual data structure
+      // }
+    }, []) // Re-run if route.params?.customer changes
+  );
+  
+
   const showDatePicker = () => {
     setDatePickerVisibility(true);
   };
@@ -39,6 +59,7 @@ const CreateInvoice = () => {
   };
 
   const handleConfirm = (date) => {
+
     setDate(date.toISOString().split('T')[0]);
     setDatePickerVisibility(false);
     //console.warn("A date has been picked: ", date);
@@ -49,7 +70,9 @@ const CreateInvoice = () => {
     setItems([...items, { ...newItem, id: items.length + 1 }]);
     setTotal(total + newItem.quantity * newItem.price);
   };
+  
   useEffect(() => {
+
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0];
     setDate(formattedDate);
@@ -61,14 +84,8 @@ const CreateInvoice = () => {
         console.error('Error fetching invoice ID:', error);
       });
   }, []);
-  useEffect(() => {
-    // Fetch customers when the component mounts
-    fetchCustomers()
-    
-      .then(data => setCustomers(data))
-      .catch(error => console.error('Failed to fetch customers:', error));
-  }, []);
-
+  
+  
   const renderCustomerItem = ({ item }) => {
     const initial = item.name.charAt(0).toUpperCase(); // Get the first letter and make it uppercase
     
@@ -89,11 +106,13 @@ const CreateInvoice = () => {
 
 
   const handleSelectCustomer = (customer) => {
+
     setCustomerName(customer.name); // Set the selected customer name
     setSelectedCustomerId(customer.id);
     setFilteredCustomers([]); // Clear the filtered list after selection
     console.log('Selected Customer:', customer);
   };
+
   const handleCustomerSearch = (text) => {
     setCustomerName(text);
     if (text.length > 0) {
@@ -111,6 +130,15 @@ const CreateInvoice = () => {
 
     saveInvoice(invoiceNo, date, customerName,selectedCustomerId, items, discount, total)
       .then(message => {
+         // auto load invoice id 
+        countInvoices()
+            .then(newInvoiceId => {
+              setInvoiceNo(newInvoiceId.toString());
+            })
+            .catch(error => {
+              console.error('Error fetching invoice ID:', error);
+            });
+          //  
         console.log(message);
       })
       .catch(error => {
@@ -344,17 +372,18 @@ const CreateInvoice = () => {
 
       {/* Save Buttons */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.saveAndPrintButton} onPress={handleSave}>
+        {/* <TouchableOpacity style={styles.saveAndPrintButton} onPress={handleSave}>
           <IconM name="share" size={24} color="#fff" style={styles.saveIcon} />
           <Text style={styles.saveButtonText}>Share</Text>
+        </TouchableOpacity> */}
+        
+        <TouchableOpacity style={styles.saveAndNewButton} onPress={handleSaveAndNew}>
+          {/* <IconM name="content-save-all" size={24} color="#fff" style={styles.saveIcon} /> */}
+          <Text style={styles.saveButtonText}>Save & New</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <IconM name="content-save" size={24} color="#fff" style={styles.saveIcon} />
+          {/* <IconM name="content-save" size={24} color="#fff" style={styles.saveIcon} /> */}
           <Text style={styles.saveButtonText}>Save</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.saveAndNewButton} onPress={handleSaveAndNew}>
-          <IconM name="content-save-all" size={24} color="#fff" style={styles.saveIcon} />
-          <Text style={styles.saveButtonText}>Save & New</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -363,7 +392,7 @@ const CreateInvoice = () => {
 
 const styles = StyleSheet.create({
   inputFocused: {
-    borderBottomColor: '#007bff', // Set a color for the focused input
+    borderBottomColor: '#888', // Set a color for the focused input
     borderBottomWidth: 2, // Set the width of the bottom border
   },
   customerListContainer: {
@@ -619,18 +648,29 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   buttonContainer: {
+    
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 20,
+    paddingVertical: 10,
     paddingHorizontal:2
   },
   saveButton: {
-    backgroundColor: '#007bff',
-    paddingHorizontal: 10,
-    paddingVertical:5,
-    borderRadius: 5,
+    backgroundColor: '#000',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 25,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 0.5,
+    borderColor: '#e0e0e0',
+    elevation: 3, // Shadow for Android
+    shadowColor: '#000', // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    width: '48%', // Make each button take up half of the width with some margin
+    marginHorizontal: '1%', // Space between buttons
   },
   saveAndPrintButton: {
     backgroundColor: '#28a745',
@@ -640,11 +680,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveAndNewButton: {
-    backgroundColor: '#17a2b8',
-    paddingHorizontal: 20,
-    borderRadius: 5,
+    backgroundColor: '#000',
+    paddingVertical: 2,
+    paddingHorizontal: 12,
+    borderRadius: 25,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 0.5,
+    borderColor: '#e0e0e0',
+    elevation: 3, // Shadow for Android
+    shadowColor: '#000', // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    width: '48%', // Make each button take up half of the width with some margin
+    marginHorizontal: '1%', // Space between buttons
   },
   saveIcon: {
     marginRight: 5,
