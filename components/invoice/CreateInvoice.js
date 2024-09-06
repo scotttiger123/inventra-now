@@ -361,10 +361,6 @@ const CreateInvoice = () => {
             </View>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Prev Balance</Text>
-          <Text style={styles.summaryText}>{(total - (parseFloat(discount) || 0)).toLocaleString()}</Text>
-        </View>
-        <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Final Amount</Text>
           <Text style={styles.summaryText}>{(total - (parseFloat(discount) || 0)).toLocaleString()}</Text>
         </View>
