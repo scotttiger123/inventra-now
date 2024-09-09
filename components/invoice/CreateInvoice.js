@@ -7,10 +7,13 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import IconI from 'react-native-vector-icons/Ionicons';
 import IconM from 'react-native-vector-icons/MaterialCommunityIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
-import { fetchCustomers } from '../database/customers/fetchCustomers';  // Adjust the import path as necessary
+import { fetchCustomers, fetchCustomerOnline, loadCustomerDataFromStorage } from '../database/customers/fetchCustomers';  // Adjust the import path as necessary
+import { fetchProductData, loadProductDataFromStorage } from '../database/products/fetchProducts';  // Adjust the import path as necessary
+import { fetchInvoicesOnline,loadInvoicesDataFromStorage, calculateAsyncStorageSize } from '../database/invoices/fetchInvoicesOnline';
 import { saveInvoice } from '../database/invoices/saveInvoice'; // Adjust the import path as necessary
 import { countInvoices } from '../database/invoices/countInvoices'; // Adjust the import path as necessary
 import { useFocusEffect } from '@react-navigation/native';
+import DashedLine from 'react-native-dashed-line';
 
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
@@ -23,6 +26,7 @@ const CreateInvoice = () => {
   const [customerName, setCustomerName] = useState('');
   const [items, setItems] = useState([]);
   const [discount, setDiscount] = useState('');
+  const [receive, setReceive] = useState('');
   const [total, setTotal] = useState(0);
   const [customers, setCustomers] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]); // State for filtered customers
@@ -36,19 +40,31 @@ const CreateInvoice = () => {
   
 
   useFocusEffect(
-    useCallback(() => {
-      // Fetch customers data
-      fetchCustomers()
-        .then((data) => setCustomers(data))
-        .catch((error) => console.error('Failed to fetch customers:', error));
 
-      // Check if there's customer data passed from another screen
-      // if (route.params?.customer) {
-      //   setCustomerName(route.params.customer.name || ''); // Adjust this based on the actual data structure
-      // }
-    }, []) // Re-run if route.params?.customer changes
-  );
+    useCallback(() => {
+
+      const fetchData = async () => {
+        try {
+          const customers = await fetchCustomerOnline(); 
+          setCustomers(customers);
+          fetchInvoicesOnline();
+          calculateAsyncStorageSize();
+
+           // Fetch product data
+          const freshProducts = await fetchProductData();
+          const cachedProducts = await loadProductDataFromStorage();
+    
+        } catch (error) {
+          console.error('Failed to fetch data:', error);
+        }
+      };
   
+      // Call the fetch function
+      fetchData();
+  
+      // Dependency array is empty, meaning it will run once when the screen is focused
+    }, []) // Re-run if dependencies (like route.params?.customer) change
+  );
 
   const showDatePicker = () => {
     setDatePickerVisibility(true);
@@ -87,7 +103,7 @@ const CreateInvoice = () => {
   
   
   const renderCustomerItem = ({ item }) => {
-    const initial = item.name.charAt(0).toUpperCase(); // Get the first letter and make it uppercase
+    const initial = item.clientname.charAt(0).toUpperCase(); // Get the first letter and make it uppercase
     
     return (
       <TouchableOpacity
@@ -98,7 +114,7 @@ const CreateInvoice = () => {
           <Text style={styles.circleText}>{initial}</Text>
         </View>
         <View style={styles.customerInfo}>
-          <Text style={styles.customerText}>{item.name} - {item.phone} - {item.address}</Text>
+          <Text style={styles.customerText}>{item.clientname} - {item.contact} - {item.address}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -107,7 +123,7 @@ const CreateInvoice = () => {
 
   const handleSelectCustomer = (customer) => {
 
-    setCustomerName(customer.name); // Set the selected customer name
+    setCustomerName(customer.clientname); // Set the selected customer name
     setSelectedCustomerId(customer.id);
     setFilteredCustomers([]); // Clear the filtered list after selection
     console.log('Selected Customer:', customer);
@@ -118,7 +134,7 @@ const CreateInvoice = () => {
     if (text.length > 0) {
       // Filter customers based on search text
       const filteredData = customers.filter(customer =>
-        customer.name.toLowerCase().includes(text.toLowerCase())
+        customer.clientname.toLowerCase().includes(text.toLowerCase())
       );
       setFilteredCustomers(filteredData);
     } else {
@@ -134,6 +150,7 @@ const CreateInvoice = () => {
         countInvoices()
             .then(newInvoiceId => {
               setInvoiceNo(newInvoiceId.toString());
+              fetchInvoicesOnline();
             })
             .catch(error => {
               console.error('Error fetching invoice ID:', error);
@@ -162,21 +179,21 @@ const CreateInvoice = () => {
     <View style={styles.container}>
       {/* Invoice Details Section */}
       <View style={styles.row}>
-        <View style={[styles.inputContainer, styles.inputContainerHalf]}>
+        <View style={[styles.inputContainer, styles.inputContainerHalf , focusedInput === 'invoiceNo' && styles.inputFocused ]}>
           <IconM name="file-find-outline" size={22} color="#888" style={styles.icon} />
           <TextInput
               style={[
                 styles.input,
-                focusedInput === 'invoiceNo' && styles.inputFocused // Apply focused style conditionally
+                
               ]}
             placeholder="Invoice No"
             value={invoiceNo}
-            onChangeText={setInvoiceNo}
-            onFocus={() => setFocusedInput('invoiceNo')}
-            onBlur={() => setFocusedInput('')}
+            onChangeText = {setInvoiceNo}
+            onFocus= {()  => setFocusedInput('invoiceNo')}
+            onBlur={()   => setFocusedInput('')}
           />
         </View>
-        <View style={[styles.inputContainer, styles.inputContainerHalf]}>
+        <View style={[styles.inputContainer, styles.inputContainerHalf , focusedInput === 'date' && styles.inputFocused ]}>
           
             <TouchableOpacity onPress={() => showDatePicker(true)}>
             
@@ -205,7 +222,8 @@ const CreateInvoice = () => {
 
       {/* Customer Details Section */}
       <View style={styles.row}>
-      <View style={[styles.inputContainer, styles.inputContainerFull]}>
+      
+      <View style={[styles.inputContainer, styles.inputContainer , focusedInput === 'customerName' && styles.inputFocused ]}>
           
           <TouchableOpacity
             style={styles.addCustomerButton}
@@ -334,34 +352,57 @@ const CreateInvoice = () => {
       <View style={styles.summarySection}>
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Total</Text>
+          
+          <Text style={styles.symbol}>Rs.</Text>
           <Text style={styles.summaryText}>{total.toLocaleString()}</Text>
         </View>
+        <View >
+          <DashedLine dashLength={5} dashThickness={0.9} dashGap={5}   />
+        </View>
+        
         <View style={styles.summaryRow}>
-            <View style={styles.inputContainer}>
+            <View style={[styles.inputNumberContainer ,focusedInput === 'Discount' && styles.inputFocused   ]}>
               <Text style={styles.summaryLabel}>Discount</Text>
+              <View style={styles.inputWrapper}>
+              <Text style={styles.symbol}>Rs.</Text>
                 <TextInput
-                 style={styles.input}
+                  style={[
+                    styles.inputNumber,
+                  ]}
+                  onFocus= {()  => setFocusedInput('Discount')}
+                  onBlur={()   => setFocusedInput('')}
                   placeholder="Discount"
                   value={discount}
                   keyboardType="numeric"
                   onChangeText={setDiscount}
                />
             </View>
-        </View>
-        <View style={styles.summaryRow}>
-        <View style={styles.inputContainer}>
-            <Text style={styles.summaryLabel}>Receive Amt </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Receive Amount"
-              value={discount}
-              keyboardType="numeric"
-              onChangeText={setDiscount}
-            />
             </View>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Final Amount</Text>
+        <View style={[styles.inputNumberContainer ,focusedInput === 'Receive' && styles.inputFocused   ]}>
+          
+            <Text style={styles.summaryLabel}>Receive </Text>
+            <Text style={styles.symbol}>Rs.</Text>
+            <TextInput
+              style={[
+                styles.inputReceive,
+              ]}
+              onFocus= {()  => setFocusedInput('Receive')}
+              onBlur={()   => setFocusedInput('')}
+              placeholder="Received"
+              value={receive}
+              keyboardType="numeric"
+              onChangeText={setReceive}
+            />
+            </View>
+        </View>
+        <View >
+          <DashedLine dashLength={5} dashThickness={0.9} dashGap={5}   />
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Balance Due</Text>
+          <Text style={styles.symbol}>Rs.</Text>
           <Text style={styles.summaryText}>{(total - (parseFloat(discount) || 0)).toLocaleString()}</Text>
         </View>
       </View>
@@ -387,9 +428,80 @@ const CreateInvoice = () => {
 };
 
 const styles = StyleSheet.create({
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    borderBottomColor: 'green',
+    
+    borderRadius: 1
+  },
+
+  inputNumberContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+  },
+  inputLabel: {
+    flex: 1,
+    textAlign: 'left',
+  },
+  symbol: {
+    flex: 1,
+    textAlign: 'right',
+    fontSize: 12,        // Smaller font size
+    color: '#555',       // Slightly lighter color
+    marginRight: 5,      // Small gap between the symbol and input
+  },
+  inputNumber: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'red',
+    
+    padding: 2,
+    marginLeft: 10,
+    width: 100,
+    textAlign: 'right',
+  },
+  inputReceive: {
+    borderBottomWidth: 1,
+    borderBottomColor: 'green',
+    
+    padding: 2,
+    marginLeft: 10,
+    width: 100,
+    textAlign: 'right',
+  },
+  summarySection: {
+    borderTopWidth: 1,
+    borderColor: '#ddd',
+    
+    borderRadius:10,
+    backgroundColor: '#e7f9eb',
+    padding:10
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+    
+  },
+  summaryLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
+    flex: 1, // Ensure label takes only needed space
+  },
+  summaryText: {
+    fontSize: 14,
+    color: '#000',
+    flex: 1, // Ensure text takes only needed space
+    textAlign: 'right', // Align text to the right
+    borderBottomColor: '#000', // Slightly darker, appealing border color
+  },
+  
   inputFocused: {
-    borderBottomColor: '#888', // Set a color for the focused input
-    borderBottomWidth: 2, // Set the width of the bottom border
+    borderBottomColor: '#000', // Set a color for the focused input
+    
   },
   customerListContainer: {
     position: 'absolute',
@@ -443,16 +555,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  input: {
-    flex: 1,
-    padding: 10,
-    fontSize: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    borderColor: 'red', // Debug border color
-    borderWidth: 1, // Debug border width
-    backgroundColor: 'transparent',
-  },
+  // input: {
+  //   flex: 1,
+  //   padding: 10,
+  //   fontSize: 14,
+  //   borderBottomWidth: 1,
+  //   borderBottomColor: '#ddd',
+  //   borderColor: 'red', // Debug border color
+  //   borderWidth: 1, // Debug border width
+  //   backgroundColor: 'transparent',
+  // },
   addCustomerButton: {
     backgroundColor: 'transparent',
     borderRadius: 5,
@@ -527,6 +639,7 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 12, // Consistent font size
   },
+  
   icon: {
     marginHorizontal: 10,
   },
@@ -624,25 +737,8 @@ const styles = StyleSheet.create({
     height: 40,
     resizeMode: 'contain',
   },
-  summarySection: {
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    paddingTop: 5,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  summaryLabel: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  summaryText: {
-    fontSize: 14,
-    color: '#000',
-  },
+  
+  
   buttonContainer: {
     
     flexDirection: 'row',

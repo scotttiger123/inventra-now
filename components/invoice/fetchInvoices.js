@@ -1,21 +1,27 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, TouchableHighlight } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, TouchableHighlight,ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { fetchInvoices } from '../database/invoices/fetchInvoices';
+import { fetchInvoicesOnline,loadInvoicesDataFromStorage } from '../database/invoices/fetchInvoicesOnline';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const InvoiceList = ({ navigation }) => {
   const [invoices, setInvoices] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [loading, setLoading] = useState(true); // Loading state
 
   useFocusEffect(
     useCallback(() => {
-      fetchInvoices()
+      setLoading(true); // Start loading
+      
+      loadInvoicesDataFromStorage()
         .then(data => {
+         
+          const sortedInvoices = data.sort((a, b) => new Date(b.order_date) - new Date(a.order_date));
           setInvoices(data);
         })
-        .catch(error => console.error('Failed to load invoices:', error));
+        .catch(error => console.error('Failed to load invoices:', error))
+        .finally(() => setLoading(false)); // Stop loading when data is fetched
     }, [])
   );
 
@@ -47,17 +53,23 @@ const InvoiceList = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+
+    {loading ? (
+      <ActivityIndicator size="large" color="#0000ff" style={styles.loadingIndicator} />
+    ) : (
+      <>
+   
       <FlatList
         data={invoices}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.itemContainer}>
             <View style={styles.textContainer}>
-              <Text style={styles.invoiceNumberText}>#   {item.invoice_no}</Text>
-              <Text style={styles.dateText}>{item.date}</Text>
-              <Text style={styles.customerNameText}>{item.customer_name}</Text>
+              <Text style={styles.invoiceNumberText}>#   {item.order_id_manual}</Text>
+              <Text style={styles.dateText}>{item.order_date}</Text>
+              <Text style={styles.customerNameText}>{item.client_name}</Text>
               <Text style={styles.amountText}>
-                {item.total && !isNaN(item.total) ? item.total.toLocaleString(0) : 'N/A'}
+                {item.total && !isNaN(item.total_amount) ? item.total_amount.toLocaleString(0) : 'N/A'}
               </Text>
             </View>
             <TouchableOpacity
@@ -75,6 +87,8 @@ const InvoiceList = ({ navigation }) => {
         style={styles.listContainer}
       />
       {renderFooter()}
+      </>
+     )}
 
       {/* Custom Popup Modal */}
       <Modal
@@ -99,6 +113,7 @@ const InvoiceList = ({ navigation }) => {
         </View>
       </Modal>
     </View>
+    
   );
 };
 

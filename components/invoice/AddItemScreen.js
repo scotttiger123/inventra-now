@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+
+import React, { useState,useEffect,useCallback } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, FlatList, Switch } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { fetchProductData, loadProductDataFromStorage } from '../database/products/fetchProducts';  // Adjust the import path as necessary
+import { useFocusEffect } from '@react-navigation/native';
 
 const AddItemScreen = ({ navigation, route }) => {
   const { addItemToList = () => {} } = route.params || {};
 
-  const [productName, setProductName] = useState('');
+  
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
   const [discount, setDiscount] = useState('');
@@ -15,6 +18,72 @@ const AddItemScreen = ({ navigation, route }) => {
   const [filteredUOMOptions, setFilteredUOMOptions] = useState(uomOptions);
   const [uomVisible, setUOMVisible] = useState(false);
   const [searchText, setSearchText] = useState('');
+
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]); // State for filtered customers
+  const [productName, setProductName] = useState('');
+  const [isFocused, setIsFocused] = useState(false); // State to track if the input is focused
+  const [focusedInput, setFocusedInput] = useState(null);
+  const [selectedProductId, setSelectedProductId] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+
+      const fetchData = async () => {
+        try {
+          const cachedProducts = await loadProductDataFromStorage();
+          console.log(cachedProducts,"Cashed Products ");
+          setProducts(cachedProducts);
+        } catch (error) {
+          console.error('Failed to fetch data:', error);
+        }
+      };
+      fetchData();
+    }, []) // Re-run if dependencies (like route.params?.customer) change
+  );
+
+
+  const renderProductItem = ({ item }) => {
+    const initial = item.product_name.charAt(0).toUpperCase(); // Get the first letter and make it uppercase
+    
+    return (
+      <TouchableOpacity
+        style={styles.customerItem}
+        onPress={() => handleSelectProduct(item)}
+      >
+        <View style={styles.circle}>
+          <Text style={styles.circleText}>{initial}</Text>
+        </View>
+        <View style={styles.customerInfo}>
+          <Text style={styles.customerText}>{item.product_name} - {item.quantity} </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+
+  const handleSelectProduct = (product) => {
+
+    setProductName(product.product_name); // Set the selected customer name
+    setSelectedProductId(product.product_name);
+    setFilteredProducts([]); // Clear the filtered list after selection
+    console.log('Selected Customer:', product);
+  };
+
+  const handleCProductSearch = (text) => {
+    setProductName(text);
+    if (text.length > 0) {
+      // Filter customers based on search text
+      const filteredData = products.filter(product =>
+        product.product_name.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredProducts(filteredData);
+    } else {
+      setFilteredProducts([]); // Clear the filtered list when input is cleared
+    }
+  };
+
+
 
   const handleSave = () => {
 
@@ -110,15 +179,37 @@ const AddItemScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <Text style={styles.label}>Product Name</Text>
       <TextInput
-        style={styles.input}
+         style={[
+          styles.input,
+          focusedInput === 'p_name' && { borderBottomColor: '#000' }, // Change border color when focused
+        ]}
         placeholder="Enter Product Name"
         value={productName}
-        onChangeText={setProductName}
+        onChangeText={handleCProductSearch} // Updated to handle search
+        onFocus={() => setFocusedInput('p_name')} 
+        onBlur={() => setFocusedInput(null)}  // When input loses focus
       />
+       {/* Display Filtered Customer List */}
+       {filteredProducts.length > 0 && (
+        <View style={styles.customerListContainer}>
+          <FlatList
+            data={filteredProducts}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderProductItem}
+            style={styles.customerList}
+          />
+          
+        </View>
+      )}
 
       <Text style={styles.label}>Quantity</Text>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          focusedInput === 'q' && { borderBottomColor: '#000' }, // Change border color when focused
+        ]}
+        onFocus={() => setFocusedInput('q')} 
+        onBlur={() => setFocusedInput(null)}  // When input loses focus
         placeholder="Enter Quantity"
         value={quantity}
         keyboardType="numeric"
@@ -127,7 +218,12 @@ const AddItemScreen = ({ navigation, route }) => {
 
       <Text style={styles.label}>Price</Text>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          focusedInput === 'Price' &&  { borderBottomColor: '#000' }, // Change border color when focused
+        ]}
+        onFocus={() => setFocusedInput('Price')} 
+        onBlur={() => setFocusedInput(null)}  // When input loses focus
         placeholder="Enter Price"
         value={price}
         keyboardType="numeric"
@@ -136,7 +232,12 @@ const AddItemScreen = ({ navigation, route }) => {
 
       <Text style={styles.label}>Unit of Measure (UOM)</Text>
       <TouchableOpacity
-        style={styles.input}
+        style={[
+          styles.input,
+          focusedInput === 'UOM' &&  { borderBottomColor: '#000' }, // Change border color when focused
+        ]}
+        onFocus={() => setFocusedInput('UOM')} 
+        onBlur={() => setFocusedInput(null)}  // When input loses focus
         onPress={() => setUOMVisible(!uomVisible)}
       >
         <Text style={styles.inputText}>{uom || 'Select UOM'}</Text>
@@ -171,7 +272,12 @@ const AddItemScreen = ({ navigation, route }) => {
         </View>
       </View>
       <TextInput
-        style={styles.input}
+         style={[
+          styles.input,
+          focusedInput === 'disc' && { borderBottomColor: '#000' }, 
+        ]}
+        onFocus={() => setFocusedInput('disc')} 
+        onBlur={()  => setFocusedInput(null)}  // When input loses focus
         placeholder={isPercentage ? 'Enter Discount (%)' : 'Enter Discount Value'}
         value={discount}
         keyboardType="numeric"
@@ -193,6 +299,63 @@ const AddItemScreen = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
+  inputFocused: {
+    borderBottomColor: '#888', // Set a color for the focused input
+    borderBottomWidth: 2, // Set the width of the bottom border
+  },
+  customerListContainer: {
+    position: 'absolute',
+    top: 100,
+    left: 20,
+    right: 20,
+    maxHeight: 300,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+    zIndex: 1,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  customerItem: {
+    flexDirection: 'row', // Align circle and text horizontally
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  circle: {
+    width: 25,
+    height: 25,
+    borderRadius: 20, // Make it a circle
+    backgroundColor: '#f3f2f8', // Background color for the circle
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10, // Space between the circle and text
+  },
+  circleText: {
+    color: 'black',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  customerInfo: {
+    flex: 1,
+  },
+  customerText: {
+    fontSize: 12,
+    color: '#333',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  
   switchContainer: {
     transform: [{ scale: 0.8 }], // Adjust the scale factor as needed
   },

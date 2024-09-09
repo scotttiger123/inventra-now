@@ -29,6 +29,7 @@ const createTablesIfNeeded = () => {
       `CREATE TABLE IF NOT EXISTS invoices (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         invoice_no TEXT,
+        user_id INTEGER,
         date TEXT,
         customer_id INTEGER,
         customer_name TEXT,
@@ -41,27 +42,27 @@ const createTablesIfNeeded = () => {
   });
 
 };
-// const addCustomerNameColumn = () => {
-//   db.transaction(tx => {
-//     tx.executeSql(
-//       'ALTER TABLE invoices ADD COLUMN customer_name TEXT;',
-//       [],
-//       () => {
-//         console.log('Column customer_name added successfully');
-//       },
-//       (error) => {
-//         console.error('Error adding column:', error);
-//       }
-//     );
-//   });
-// };
+const addCustomerNameColumn = () => {
+  db.transaction(tx => {
+    tx.executeSql(
+      'ALTER TABLE customers ADD COLUMN user_id INTEGER;',
+      [],
+      () => {
+        console.log('Column customer_name added successfully');
+      },
+      (error) => {
+        console.error('Error adding column:', error);
+      }
+    );
+  });
+};
 
 // Initialize database and create tables if necessary
 const initializeDatabase = () => {
   db.transaction(tx => {
     tx.executeSql('PRAGMA foreign_keys = ON;'); // Optional: Enable foreign key constraints
     createTablesIfNeeded(); // Ensure the tables are created
-    // addCustomerNameColumn();
+     addCustomerNameColumn();
   });
 };
 
