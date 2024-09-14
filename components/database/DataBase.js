@@ -54,6 +54,7 @@ const createTablesIfNeeded = () => {
         description TEXT,
         user_id INTEGER,
         sync INTEGER,
+        voucher_no TEXT,
         payment_method TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -71,7 +72,8 @@ const createTablesIfNeeded = () => {
 const addCustomerNameColumn = () => {
   db.transaction(tx => {
     tx.executeSql(
-      'ALTER TABLE payments DROP COLUMN party_name TEXT;',
+      
+      'ALTER TABLE payments ADD COLUMN voucher_no TEXT;',
       [],
       () => {
         console.log('Column party_name added successfully');
@@ -83,7 +85,7 @@ const addCustomerNameColumn = () => {
   });
 };
 
-const deleteData = () => {
+    const deleteData = () => {
       db.transaction(tx => {
         tx.executeSql(
           'DELETE FROM payments',
@@ -96,7 +98,7 @@ const deleteData = () => {
           }
         );
       });
-  } 
+    } 
   const viewData = () => {
 
       db.transaction(tx => {
@@ -151,6 +153,7 @@ const initializeDatabase = () => {
     createTablesIfNeeded(); // Ensure the tables are created
     //viewData();
       //deleteData();
+
      //addCustomerNameColumn();
      //checkTableSchema();
   });

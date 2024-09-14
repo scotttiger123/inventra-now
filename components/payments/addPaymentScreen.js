@@ -12,6 +12,28 @@ import IconI from 'react-native-vector-icons/Ionicons';
 import IconM from 'react-native-vector-icons/MaterialCommunityIcons';
 import Entypo from 'react-native-vector-icons/Entypo';
 
+// Function to generate voucher number and timestamp
+const generateVoucherWithTimestamp = () => {
+  const timestamp = new Date(); // Current date and time
+  const day = timestamp.getDate().toString().padStart(2, '0');
+  const month = (timestamp.getMonth() + 1).toString().padStart(2, '0'); // Month is zero-based
+  const year = timestamp.getFullYear();
+  // const hours = timestamp.getHours().toString().padStart(2, '0');
+  // const minutes = timestamp.getMinutes().toString().padStart(2, '0');
+  // const seconds = timestamp.getSeconds().toString().padStart(2, '0');
+  
+  // Format: DD-MM-YYYY HH:MM:SS
+  //const formattedTimestamp = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+  const formattedTimestamp = `${day}-${month}-${year}`;
+  
+  const shortTimestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+  const randomPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0'); // Random number between 000 and 999
+  const voucherNumber = `${shortTimestamp}${randomPart}`; // Combine both parts
+
+  return { voucherNumber, formattedTimestamp }; // Return both values
+};
+
+
 const AddPaymentScreen = ({ route }) => {
   const navigation = useNavigation();
   
@@ -31,9 +53,15 @@ const AddPaymentScreen = ({ route }) => {
   const [date, setDate] = useState('');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
+  const [voucherNo, setVoucherNo] = useState('');
+
   const nameInputRef = useRef(null);
-
-
+  useEffect(() => {
+    const { voucherNumber, formattedTimestamp } = generateVoucherWithTimestamp(); // Generate the values
+    setVoucherNo(voucherNumber); // Set voucher number in state
+    setDate(formattedTimestamp); // Set formatted timestamp in state
+  }, []);
+  
 
   //DATE PATTERN 
   const showDatePicker = () => {
@@ -44,12 +72,27 @@ const AddPaymentScreen = ({ route }) => {
     setDatePickerVisibility(false);
   };
 
-  const handleConfirm = (date) => {
+  // const handleConfirm = (date) => {
 
-    setDate(date.toISOString().split('T')[0]);
+  //   setDate(date.toISOString().split('T')[0]);
+  //   setDatePickerVisibility(false);
+  //   //console.warn("A date has been picked: ", date);
+  //   hideDatePicker();
+  // };
+
+  const handleConfirm = (selectedDate) => {
+    const formattedDate = formatDate(selectedDate);
+    setDate(formattedDate);
     setDatePickerVisibility(false);
     //console.warn("A date has been picked: ", date);
     hideDatePicker();
+  };
+
+  const formatDate = (date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`; // Format: DD-MM-YYYY
   };
 
   //END DATEPATERN
@@ -104,9 +147,9 @@ const AddPaymentScreen = ({ route }) => {
     //   return;
     // }
 
-    savePayment(customerId,supplierId, customerName, date, amount, paymentMethod, description)
+    savePayment(voucherNo,customerId,supplierId, customerName, date, amount, paymentMethod, description)
       .then((res) => {
-        Alert.alert('Success', 'Payment saved successfully');
+        //Alert.alert('Success', 'Payment saved successfully');
         // Reset all form fields
         setCustomerId('');
         setSupplierId('');
@@ -141,36 +184,56 @@ const AddPaymentScreen = ({ route }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.content}>
+
       <View style={[styles.inputContainer, styles.inputContainerHalf , focusedInput === 'date' && styles.inputFocused ]}>
-          
+      
+        <View style={styles.row}> 
+      
+          <IconM name="file-find-outline" size={22} color="#888" style={styles.icon} />
+          <TextInput
+              style={[
+                styles.input,
+                
+              ]}
+            placeholder="Voucher No "
+            value={voucherNo}
+            onChangeText = {setVoucherNo}
+            onFocus= {()  => setFocusedInput('voucherNo')}
+            onBlur={()   => setFocusedInput('')}
+          />
+      
           <TouchableOpacity onPress={() => showDatePicker(true)}>
-          
             <Icon name="calendar" size={20} color="#888" style={styles.icon} />
           </TouchableOpacity>
 
-        <TextInput
-          style={[
-            styles.input,
-            focusedInput === 'date' && styles.inputFocused // Apply focused style conditionally
-          ]}
-          placeholder="Date"
-          value={date}
-          onChangeText={setDate}
-          onFocus={() => setFocusedInput('date')}
-          onBlur={() => setFocusedInput('')}
-        />
-        <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        onConfirm={handleConfirm}
-        onCancel={hideDatePicker}
-      />
+           <TextInput
+              style={[
+                styles.input,
+                focusedInput === 'date' && styles.inputFocused // Apply focused style conditionally
+              ]}
+              placeholder="Date"
+              value={date}
+              onChangeText={setDate}
+              onFocus={() => setFocusedInput('date')}
+              onBlur={() => setFocusedInput('')}
+          />
+          
+        </View>
+              <DateTimePickerModal
+              isVisible={isDatePickerVisible}
+              mode="date"
+              onConfirm={handleConfirm}
+              onCancel={hideDatePicker}
+            />
       </View>
+
         <View style={styles.inputContainer }>
           <Text style={styles.label}>Customer</Text>
             
           <View style={styles.row}>
-              <Icon name="search" size={20} color="#000" />
+            <TouchableOpacity onPress={() => handleCustomerSearch(' ')}>
+              <Icon name="search" size={20} color="#888" />
+          </TouchableOpacity>
                 <TextInput
                   ref={nameInputRef}
                   style={[styles.input, { borderBottomColor: focusedInput === 'customerName' ? '#000' : '#ddd' }]}
@@ -210,7 +273,7 @@ const AddPaymentScreen = ({ route }) => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Description</Text>
+          <Text style={styles.label}>Remarks</Text>
           <TextInput
             style={[styles.input, { borderBottomColor: focusedInput === 'description' ? '#000' : '#ddd' }]}
             placeholder="Description (optional)"
@@ -331,7 +394,7 @@ const styles = StyleSheet.create({
 
   customerListContainer: {
     position: 'absolute',
-    top: 100,
+    top: 160,
     left: 20,
     right: 20,
     maxHeight: 300,
