@@ -5,17 +5,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Open or create the database
 const db = SQLite.openDatabase({ name: 'inventa.db', location: 'default' });
 
-const fetchCustomers = () => {
+
+export const fetchPaymentsLocal = async () => {
   return new Promise((resolve, reject) => {
     db.transaction(tx => {
       tx.executeSql(
-        'SELECT * FROM customers',
+        'SELECT * FROM payments',
         [],
         (tx, results) => {
           let customers = [];
           for (let i = 0; i < results.rows.length; i++) {
             customers.push(results.rows.item(i));
           }
+          console.log("payments local",customers);
           resolve(customers);
         },
         error => {
@@ -30,7 +32,7 @@ const fetchCustomers = () => {
 
 
 // Function to fetch product data for the specific user ID from the API and store it in AsyncStorage
-export const fetchCustomerOnline = async () => {
+export const fetchPaymentsOnline = async () => {
   try {
     // Get user ID from AsyncStorage
     const userId = await AsyncStorage.getItem('userId');
@@ -38,35 +40,35 @@ export const fetchCustomerOnline = async () => {
     if (!userId) {
       throw new Error('User ID not found in AsyncStorage');
     }
-
-    const apiEndpoint = `https://lv.inventra.pk/api/customer/user/${userId}`;
+    console.log("payment-user-id",userId);
+    const apiEndpoint = `https://lv.inventra.pk/api/payment/user/${userId}`;
 
     const response = await axios.get(apiEndpoint);
-    const productData = response.data;
+    const paymentData = response.data;
 
     // Store the product data in AsyncStorage
-    await AsyncStorage.setItem('customerData', JSON.stringify(productData));
-    console.log('Product data stored successfully in AsyncStorage');
+    await AsyncStorage.setItem('paymentData', JSON.stringify(paymentData));
+    console.log('Payment data stored successfully in AsyncStorage');
 
-    return productData;
+    return paymentData;
   } catch (error) {
-    console.error('Error fetching product data', error);
+    console.error('Error fetching online payment data', error);
     throw error;
   }
 };
 
 // Function to load product data from AsyncStorage
-export const loadCustomerDataFromStorage = async () => {
+export const loadPaymentsDataFromStorage = async () => {
   try {
-    const storedData = await AsyncStorage.getItem('customerData');
-    console.log("customer Sync data", storedData);
+    const storedData = await AsyncStorage.getItem('paymentData');
+    console.log("online payment data store in sync",storedData);
     
     if (storedData !== null) {
       return JSON.parse(storedData);
     }
     return null; // Return null if no data is found
   } catch (error) {
-    console.error('Error loading product data from AsyncStorage', error);
+    console.error('Error loadind product data from AsyncStorage', error);
     throw error;
   }
 };

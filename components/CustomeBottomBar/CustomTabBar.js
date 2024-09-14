@@ -42,8 +42,11 @@ function CustomTabBar() {
       case 'Settings':
         setActiveTab('Settings');
         break;
-      case 'Chat':
-        setActiveTab('Chat');
+      case 'addPaymentScreen':
+        setActiveTab('AddPaymentScreen');
+        break;
+      case 'ListPayments':
+        setActiveTab('ListPayments');
         break;
       default:
         setActiveTab('Home'); // Fallback to Home if route name doesn't match
@@ -99,6 +102,12 @@ function CustomTabBar() {
         break;
       case 'Settings':
         navigation.navigate('Settings'); // Ensure you navigate to Settings screen
+        break;
+        case 'addPaymentScreen':
+        navigation.navigate('AddPaymentScreen'); // Ensure you navigate to Settings screen
+        break;
+        case 'ListPayments':
+        navigation.navigate('ListPayments'); // Ensure you navigate to Settings screen
         break;
       case 'Invoices':
         navigation.navigate('FetchInvoices'); // Ensure you navigate to Chat screen
@@ -158,6 +167,41 @@ function CustomTabBar() {
             </TouchableOpacity>
             {/* Add more menu items as needed */}
           </View>
+
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Payments </Text>
+          </View>
+
+              <View style={styles.menuGrid}>
+              <TouchableOpacity style={styles.menuItem} onPress={() => handleTabPress('addPaymentScreen')}>
+                <View style={styles.iconBox}>
+                  <Icon name="credit-card" size={24} color={activeTab === 'addPaymentScreen' ? '#000' : '#03a65a'} />
+                </View>
+                <Text style={styles.menuText}>Add Payment </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem} onPress={() => handleTabPress('ListPayments')}>
+                <View style={styles.iconBox}>
+                  <Icon name="credit-card" size={24} color={activeTab === 'ListPayments' ? '#000' : '#03a65a'} />
+                </View>
+                <Text style={styles.menuText}>Payment Report </Text>
+              </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.menuItem} 
+                  onPress={() => {
+                    togglePopup();
+                    handleTabPress('ListCustomers');
+                  }}
+                >
+                  <View style={styles.iconBox}>
+                    <IconM name="dots-grid" size={24} color={activeTab === 'BackUp' ? '#000' : '#03a65a'} />
+                  </View>
+                  <Text style={styles.menuText}>Payment out </Text>
+                </TouchableOpacity>
+                
+              </View>    
+
+
           <View style={styles.header}>
             <Text style={styles.headerText}>Settings</Text>
           </View>

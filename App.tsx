@@ -19,6 +19,8 @@ import LoginScreen from './components/login/loginScreen';
 import RegisterScreen from './components/login/registerScreen';
 import FetchInvoices from './components/invoice/fetchInvoices';
 import InvoiceDetails from './components/invoice/invoiceDetails';
+import AddPaymentScreen from './components/payments/addPaymentScreen';
+import ListPayments from './components/payments/listPayments';
 
 
 const Stack = createStackNavigator();
@@ -235,7 +237,36 @@ function App() {
               headerStyle: styles.header,
             })}
           />
-        
+          <Stack.Screen
+            name="AddPaymentScreen"
+            component={AddPaymentScreen}
+            options={({ navigation }) => ({
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeft}>
+                  <Icon name="arrow-back" size={24} color={themeColor} />
+                </TouchableOpacity>
+              ),
+              headerTitle: 'Payment In / Receive ',
+              headerTitleStyle: styles.headerTitle,
+              headerStyle: styles.header,
+            })}
+          />
+          <Stack.Screen
+            name="ListPayments"
+            component={ListPayments}
+            options={({ navigation }) => ({
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeft}>
+                  <Icon name="arrow-back" size={24} color={themeColor} />
+                </TouchableOpacity>
+              ),
+              headerTitle: 'Payment History ',
+              headerTitleStyle: styles.headerTitle,
+              headerStyle: styles.header,
+            })}
+          />
           
         </Stack.Navigator>
       </View>

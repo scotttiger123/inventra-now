@@ -22,10 +22,11 @@ const saveCustomer = (name, phone, address) => {
           async (tx, results) => {
             const count = results.rows.item(0).count;
 
-            if (count > 100) {
-              // Phone number already exists
-              reject('Phone number already exists.');
-            } else {
+            // if (count > 100) {
+            //   // Phone number already exists
+            //   reject('Phone number already exists.');
+            // } else {
+
               // Phone number is unique, proceed with insertion
               tx.executeSql(
                 `INSERT INTO customers (name, phone, address, user_id) VALUES (?, ?, ?, ?);`,
@@ -74,7 +75,7 @@ const saveCustomer = (name, phone, address) => {
                   reject('Error saving customer locally: ' + error.message);
                 }
               );
-            }
+            //}
           },
           error => {
             reject('Error checking phone number: ' + error.message);

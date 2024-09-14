@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity, Modal, TouchableHighlight } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { fetchCustomers } from '../database/customers/fetchCustomers';
+import { fetchCustomers,fetchCustomerOnline } from '../database/customers/fetchCustomers';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 
@@ -16,7 +16,7 @@ const CustomerList = ({ navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchCustomers()
+      fetchCustomerOnline()
         .then(data => {
           const sortedCustomers = data.sort((a, b) => a.name.localeCompare(b.name));
           setCustomers(sortedCustomers);

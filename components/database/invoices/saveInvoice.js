@@ -4,7 +4,8 @@ import config from '../../config/config'; // Adjusted path to import config
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Function to save invoice both locally and online
-const saveInvoice = async (invoiceNo, date, customerName, customerId, items, discount, total) => {
+const saveInvoice = async (invoiceNo, date, customerName, customerId, items, discount,receive, total,remarks) => {
+
   const itemsJSON = JSON.stringify(items); // Convert items array to JSON string
   const invoiceData = {
     invoice_no: invoiceNo,
@@ -13,13 +14,17 @@ const saveInvoice = async (invoiceNo, date, customerName, customerId, items, dis
     customer_id: customerId,
     items: itemsJSON,
     discount: parseFloat(discount) || 0,
+    receive,
+    remarks,
     total,
+    
     
     
     
   };
 
   try {
+    
     const userId = await AsyncStorage.getItem('userId');
     if (!userId) {
       throw new Error('need Login to save invoice');
@@ -30,8 +35,8 @@ const saveInvoice = async (invoiceNo, date, customerName, customerId, items, dis
     await new Promise((resolve, reject) => {
       db.transaction(tx => {
         tx.executeSql(
-          `INSERT INTO invoices (invoice_no, date, customer_name, customer_id, items, discount, total,user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [invoiceNo, date, customerName, customerId, itemsJSON, parseFloat(discount) || 0, total, userId],
+          `INSERT INTO invoices (invoice_no, date, customer_name, customer_id, items, discount, receive, total,user_id,remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [invoiceNo, date, customerName, customerId, itemsJSON, parseFloat(discount) || 0, receive,  total, userId,remarks],
           (tx, results) => {
             if (results.rowsAffected > 0) {
               console.log('Invoice saved locally successfully');
@@ -48,7 +53,7 @@ const saveInvoice = async (invoiceNo, date, customerName, customerId, items, dis
         );
       });
     });
-
+    console.log(invoiceData);
     // Save online
     const response = await fetch(`${config.apiBaseUrl}/invoice/save`, {
       method: 'POST',

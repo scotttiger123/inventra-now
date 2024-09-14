@@ -1,4 +1,4 @@
-import React, { useState,useEffect,useCallback } from 'react';
+import React, { useState,useEffect,useCallback,useRef } from 'react';
 import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, Image,FlatList,  Dimensions ,Animated} from 'react-native';
 
 import {  useNavigation, useRoute } from '@react-navigation/native';
@@ -10,16 +10,26 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import { fetchCustomers, fetchCustomerOnline, loadCustomerDataFromStorage } from '../database/customers/fetchCustomers';  // Adjust the import path as necessary
 import { fetchProductData, loadProductDataFromStorage } from '../database/products/fetchProducts';  // Adjust the import path as necessary
 import { fetchInvoicesOnline,loadInvoicesDataFromStorage, calculateAsyncStorageSize } from '../database/invoices/fetchInvoicesOnline';
+import { fetchPaymentsOnline,loadPaymentsDataFromStorage,  } from '../database/payments/fetchPayments';
+
+
+
 import { saveInvoice } from '../database/invoices/saveInvoice'; // Adjust the import path as necessary
 import { countInvoices } from '../database/invoices/countInvoices'; // Adjust the import path as necessary
 import { useFocusEffect } from '@react-navigation/native';
 import DashedLine from 'react-native-dashed-line';
 
+
+
+
+
+
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 
 const CreateInvoice = () => {
-  
+
+  const customerNameRef = useRef(null); // Create a ref for the customerName input
   const navigation = useNavigation();
   const [invoiceNo, setInvoiceNo] = useState('');
   const [date, setDate] = useState('');
@@ -28,14 +38,15 @@ const CreateInvoice = () => {
   const [discount, setDiscount] = useState('');
   const [receive, setReceive] = useState('');
   const [total, setTotal] = useState(0);
+  const [remarks, setRemarks] = useState('');
+  
   const [customers, setCustomers] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]); // State for filtered customers
   const [selectedCustomerId, setSelectedCustomerId] = useState(null);
   const [focusedInput, setFocusedInput] = useState('');
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
-  
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-
+  
   const route = useRoute();
   
 
@@ -49,6 +60,7 @@ const CreateInvoice = () => {
           setCustomers(customers);
           fetchInvoicesOnline();
           calculateAsyncStorageSize();
+          fetchPaymentsOnline();
 
            // Fetch product data
           const freshProducts = await fetchProductData();
@@ -144,7 +156,30 @@ const CreateInvoice = () => {
 
   const handleSave = () => {
 
-    saveInvoice(invoiceNo, date, customerName,selectedCustomerId, items, discount, total)
+    saveInvoice(invoiceNo, date, customerName,selectedCustomerId, items, discount, receive, total,remarks)
+      .then(message => {
+         // auto load invoice id 
+              countInvoices()
+            .then(newInvoiceId => {
+              navigation.navigate('FetchInvoices');
+              setInvoiceNo(newInvoiceId.toString());
+              fetchInvoicesOnline();
+              
+            })
+            .catch(error => {
+              console.error('Error fetching invoice ID:', error);
+            });
+          //  
+        console.log(message);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  };
+
+  const handleSaveAndNew = () => {
+    
+    saveInvoice(invoiceNo, date, customerName,selectedCustomerId, items, discount,receive, total,remarks)
       .then(message => {
          // auto load invoice id 
         countInvoices()
@@ -161,10 +196,7 @@ const CreateInvoice = () => {
       .catch(error => {
         console.error(error);
       });
-  };
 
-  const handleSaveAndNew = () => {
-    // Logic to save the invoice and clear fields for new invoice
     console.log('Invoice saved and new invoice started');
     setInvoiceNo('');
     setDate('');
@@ -172,7 +204,14 @@ const CreateInvoice = () => {
     setSelectedCustomerId(null);
     setItems([]);
     setDiscount('');
+    setReceive('');
     setTotal(0);
+    setRemarks('');
+    // Set focus to customerName field after resetting
+    if (customerNameRef.current) {
+      customerNameRef.current.focus();
+    }
+
   };
   
   return (
@@ -242,6 +281,7 @@ const CreateInvoice = () => {
             onChangeText={handleCustomerSearch} // Updated to handle search
             onFocus={() => setFocusedInput('customerName')}
             onBlur={() => setFocusedInput('')}
+            ref={customerNameRef} // Attach the ref here
           />
         </View>
       </View>
@@ -336,11 +376,17 @@ const CreateInvoice = () => {
 
 
         {/* Remarks input field and image upload button */}
-        <View style={styles.remarksContainer}>
+        <View style={[styles.inputContainer, styles.inputContainerHalf , focusedInput === 'remark' && styles.inputFocused ]}>
+          
+          
           <TextInput
-            style={styles.remarksInput}
+            style={styles.input}
+            value={remarks}
             placeholder="Enter remarks here"
             multiline
+            onFocus= {()  => setFocusedInput('remark')}
+            onBlur={()   => setFocusedInput('')}
+            onChangeText={setRemarks}
           />
           <TouchableOpacity style={styles.uploadButton}>
             <Entypo name="attachment" size={20} color="#333" style={styles.icon} />
@@ -403,7 +449,10 @@ const CreateInvoice = () => {
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Balance Due</Text>
           <Text style={styles.symbol}>Rs.</Text>
-          <Text style={styles.summaryText}>{(total - (parseFloat(discount) || 0)).toLocaleString()}</Text>
+          {/* <Text style={styles.summaryText}>{(total - (parseFloat(discount) || 0)).toLocaleString()}</Text> */}
+          <Text style={styles.summaryText}>
+            {(total - (parseFloat(discount) || 0) - (parseFloat(receive) || 0)).toLocaleString()}
+          </Text>
         </View>
       </View>
 
@@ -644,7 +693,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   section: {
-    marginBottom: 5,
+    marginBottom: 0,
   },
   addButton: {
     backgroundColor: 'transparent', // No background color
@@ -715,20 +764,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase', // Added to make text uppercase
   },
   
-  remarksContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  remarksInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#E0E4F2',
-    borderRadius: 5,
-    padding: 10,
-    fontSize: 12, // Consistent font size
-    
-  },
+
   uploadButton: {
     marginLeft: 10,
   },
