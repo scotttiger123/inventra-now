@@ -2,7 +2,7 @@ import { db } from '../DataBase.js'; // Import your database instance
 import { Alert } from 'react-native'; // Import Alert for displaying messages
 import config from '../../config/config'; // Adjusted path to import config
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import {syncUnsyncedInvoices} from '../syncData/syncInvoices.js'; // Adjusted path to import config
 // Function to save invoice both locally and online
 const saveInvoice = async (invoiceNo, date, customerName, customerId, items, discount,receive, total,remarks) => {
 
@@ -53,25 +53,11 @@ const saveInvoice = async (invoiceNo, date, customerName, customerId, items, dis
         );
       });
     });
-    console.log(invoiceData);
-    // Save online
-    const response = await fetch(`${config.apiBaseUrl}/invoice/save`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(invoiceData),
-    });
 
-    const result = await response.json();
 
-    if (response.ok) {
-      console.log('Invoice saved online successfully');
-      Alert.alert('Success', 'Invoice saved  successfully');
-    } else {
-      console.error('Failed to save invoice online:', result.error || 'Unknown error');
-      Alert.alert('Error', 'Failed to save invoice online: ' + (result.error || 'Unknown error'));
-    }
+
+    syncUnsyncedInvoices();
+    
 
   } catch (error) {
     console.error('Error saving invoice:', error.message);
@@ -80,3 +66,4 @@ const saveInvoice = async (invoiceNo, date, customerName, customerId, items, dis
 };
 
 export { saveInvoice };
+

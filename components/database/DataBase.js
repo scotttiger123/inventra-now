@@ -13,17 +13,19 @@ const createTablesIfNeeded = () => {
         name TEXT,
         phone TEXT,
         address TEXT
+        sync INTEGER,
       );`
     );
-    tx.executeSql(
-      `CREATE TABLE IF NOT EXISTS orders (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        customer_id INTEGER,
-        order_date TEXT,
-        total_amount REAL,
-        FOREIGN KEY (customer_id) REFERENCES customers(id)
-      );`
-    );
+    // tx.executeSql(
+    //   `CREATE TABLE IF NOT EXISTS orders (
+    //     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    //     customer_id INTEGER,
+    //     order_date TEXT,
+    //     total_amount REAL,
+    //     sync INTEGER,
+    //     FOREIGN KEY (customer_id) REFERENCES customers(id)
+    //   );`
+    // );
     // Create the invoices table if it doesn't exist
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS invoices (
@@ -37,6 +39,7 @@ const createTablesIfNeeded = () => {
         discount REAL,
         receive REAL,
         total REAL,
+        sync INTEGER,
         FOREIGN KEY (customer_id) REFERENCES customers(id)
       );`
     );
@@ -73,7 +76,8 @@ const addCustomerNameColumn = () => {
   db.transaction(tx => {
     tx.executeSql(
       
-      'ALTER TABLE payments ADD COLUMN voucher_no TEXT;',
+
+      'ALTER TABLE invoices ADD COLUMN sync INTEGER;',
       [],
       () => {
         console.log('Column party_name added successfully');
@@ -84,7 +88,6 @@ const addCustomerNameColumn = () => {
     );
   });
 };
-
     const deleteData = () => {
       db.transaction(tx => {
         tx.executeSql(
@@ -99,6 +102,7 @@ const addCustomerNameColumn = () => {
         );
       });
     } 
+
   const viewData = () => {
 
       db.transaction(tx => {

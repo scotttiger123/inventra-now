@@ -99,11 +99,30 @@ const CreateInvoice = () => {
     setTotal(total + newItem.quantity * newItem.price);
   };
   
+  const generateVoucherWithTimestamp = () => {
+    const timestamp = new Date(); // Current date and time
+    const day = timestamp.getDate().toString().padStart(2, '0');
+    const month = (timestamp.getMonth() + 1).toString().padStart(2, '0'); // Month is zero-based
+    const year = timestamp.getFullYear();
+    // const hours = timestamp.getHours().toString().padStart(2, '0');
+    // const minutes = timestamp.getMinutes().toString().padStart(2, '0');
+    // const seconds = timestamp.getSeconds().toString().padStart(2, '0');
+    
+    // Format: DD-MM-YYYY HH:MM:SS
+    //const formattedTimestamp = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+    const formattedTimestamp = `${day}-${month}-${year}`;
+    
+    const shortTimestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
+    const randomPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0'); // Random number between 000 and 999
+    const voucherNumber = `${shortTimestamp}${randomPart}`; // Combine both parts
+  
+    return { voucherNumber, formattedTimestamp }; // Return both values
+  };
+
   useEffect(() => {
 
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    setDate(formattedDate);
+    const { voucherNumber, formattedTimestamp } = generateVoucherWithTimestamp(); // Generate the values
+    setDate(formattedTimestamp);
     countInvoices()
       .then(newInvoiceId => {
         setInvoiceNo(newInvoiceId.toString());
@@ -146,7 +165,7 @@ const CreateInvoice = () => {
     if (text.length > 0) {
       // Filter customers based on search text
       const filteredData = customers.filter(customer =>
-        customer.clientname.toLowerCase().includes(text.toLowerCase())
+        customer.clientname?.toLowerCase().includes(text.toLowerCase())
       );
       setFilteredCustomers(filteredData);
     } else {
@@ -161,9 +180,12 @@ const CreateInvoice = () => {
          // auto load invoice id 
               countInvoices()
             .then(newInvoiceId => {
+
               navigation.navigate('FetchInvoices');
               setInvoiceNo(newInvoiceId.toString());
               fetchInvoicesOnline();
+              const { voucherNumber, formattedTimestamp } = generateVoucherWithTimestamp();
+              setDate(formattedTimestamp);
               
             })
             .catch(error => {
@@ -186,6 +208,10 @@ const CreateInvoice = () => {
             .then(newInvoiceId => {
               setInvoiceNo(newInvoiceId.toString());
               fetchInvoicesOnline();
+              const { voucherNumber, formattedTimestamp } = generateVoucherWithTimestamp();
+              setDate(formattedTimestamp);
+
+
             })
             .catch(error => {
               console.error('Error fetching invoice ID:', error);
