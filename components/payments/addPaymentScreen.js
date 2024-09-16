@@ -55,7 +55,16 @@ const AddPaymentScreen = ({ route }) => {
 
   const [voucherNo, setVoucherNo] = useState('');
 
+
+  const [amountError, setAmountError] = useState('');
+  const [customerError, setCustomerError] = useState('');
+  const [voucherError, setVoucherError] = useState('');
+  const amountInputRef = useRef(null);
   const nameInputRef = useRef(null);
+  
+  const voucherInputRef = useRef(null);
+
+  
   useEffect(() => {
     const { voucherNumber, formattedTimestamp } = generateVoucherWithTimestamp(); // Generate the values
     setVoucherNo(voucherNumber); // Set voucher number in state
@@ -107,9 +116,10 @@ const AddPaymentScreen = ({ route }) => {
   // Handle customer search
   const handleCustomerSearch = (text) => {
     setCustomerName(text);
+    console.log("handle customer search",text);
     if (text.length > 0) {
       const filteredData = customers.filter(customer =>
-        customer.clientname.toLowerCase().includes(text.toLowerCase())
+        customer.clientname?.toLowerCase().includes(text.toLowerCase())
       );
       setFilteredCustomers(filteredData);
 
@@ -124,6 +134,7 @@ const AddPaymentScreen = ({ route }) => {
       const fetchData = async () => {
         try {
           const customers = await loadCustomerDataFromStorage();
+          console.log("customery addpaymentscreen" , customers);
           setCustomers(customers);
         } catch (error) {
           console.error('Failed to fetch customers:', error);
@@ -139,13 +150,51 @@ const AddPaymentScreen = ({ route }) => {
     }
   }, []);
 
+
+  const validateVoucherNo = () => {
+    if (!voucherNo.trim()) {
+      setVoucherError('Voucher number is required.');
+      if (voucherInputRef.current) voucherInputRef.current.focus();
+      return false;
+    }
+    setVoucherError('');
+    return true;
+  };
+
+  const validateCustomerName = () => {
+    if (!customerId) {
+      setCustomerError('Customer name is required.');
+      if (nameInputRef.current) nameInputRef.current.focus();
+      return false;
+    }
+    setCustomerError('');
+    return true;
+  };
+
+  const validateAmount = () => {
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      setAmountError('Amount is required and must be a positive number.');
+      amountInputRef.current.focus();
+      return false;
+    }
+    setAmountError('');
+    return true;
+  };
   // Save payment function
   const handleSave = () => {
 
-    // if (!customerId || !amount || !paymentMethod) {
-    //   Alert.alert('Error', 'Please fill in all required fields.');
-    //   return;
-    // }
+    let isValid = true;
+    if (!validateAmount()) isValid = false;
+    if (!validateCustomerName()) isValid = false;
+    if (!validateVoucherNo()) isValid = false;
+  
+    // Add additional validation checks for other fields if needed
+  
+    if (!isValid) {
+      Alert.alert('Error', 'Please fix the errors in the form.');
+      return;
+    }
+  
 
     savePayment(voucherNo,customerId,supplierId, customerName, date, amount, paymentMethod, description)
       .then((res) => {
@@ -157,6 +206,9 @@ const AddPaymentScreen = ({ route }) => {
         setAmount('');
         setPaymentMethod('cash'); // Set to default value or empty string if required
         setDescription('');
+        const { voucherNumber, formattedTimestamp } = generateVoucherWithTimestamp();
+        setVoucherNo(voucherNumber);
+        setDate(formattedTimestamp);
         
     
       })
@@ -179,16 +231,13 @@ const AddPaymentScreen = ({ route }) => {
   );
 
   return (
-    <KeyboardAvoidingView
+    <View
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.content}>
+    <View style={styles.content}>
 
       <View style={[styles.inputContainer, styles.inputContainerHalf , focusedInput === 'date' && styles.inputFocused ]}>
-      
         <View style={styles.row}> 
-      
           <IconM name="file-find-outline" size={22} color="#888" style={styles.icon} />
           <TextInput
               style={[
@@ -200,8 +249,9 @@ const AddPaymentScreen = ({ route }) => {
             onChangeText = {setVoucherNo}
             onFocus= {()  => setFocusedInput('voucherNo')}
             onBlur={()   => setFocusedInput('')}
+            ref={voucherInputRef}
           />
-      
+          
           <TouchableOpacity onPress={() => showDatePicker(true)}>
             <Icon name="calendar" size={20} color="#888" style={styles.icon} />
           </TouchableOpacity>
@@ -211,6 +261,7 @@ const AddPaymentScreen = ({ route }) => {
                 styles.input,
                 focusedInput === 'date' && styles.inputFocused // Apply focused style conditionally
               ]}
+              
               placeholder="Date"
               value={date}
               onChangeText={setDate}
@@ -219,6 +270,8 @@ const AddPaymentScreen = ({ route }) => {
           />
           
         </View>
+        {voucherError ? <Text style={styles.errorText}>{voucherError}</Text> : null}
+           
               <DateTimePickerModal
               isVisible={isDatePickerVisible}
               mode="date"
@@ -231,9 +284,7 @@ const AddPaymentScreen = ({ route }) => {
           <Text style={styles.label}>Customer</Text>
             
           <View style={styles.row}>
-            <TouchableOpacity onPress={() => handleCustomerSearch(' ')}>
               <Icon name="search" size={20} color="#888" />
-          </TouchableOpacity>
                 <TextInput
                   ref={nameInputRef}
                   style={[styles.input, { borderBottomColor: focusedInput === 'customerName' ? '#000' : '#ddd' }]}
@@ -244,7 +295,9 @@ const AddPaymentScreen = ({ route }) => {
                   onBlur={() => setFocusedInput('')}
                   placeholderTextColor="#aaa"
                 />
+           
              </View>   
+             {customerError ? <Text style={styles.errorText}>{customerError}</Text> : null}
           
         </View>
 
@@ -259,18 +312,25 @@ const AddPaymentScreen = ({ route }) => {
           </View>
         )}
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Amount</Text>
-          <TextInput
-            style={[styles.input, { borderBottomColor: focusedInput === 'amount' ? '#000' : '#ddd' }]}
-            placeholder="Enter amount"
-            keyboardType="numeric"
-            value={amount}
-            onChangeText={setAmount}
-            onFocus={() => setFocusedInput('amount')}
-            onBlur={() => setFocusedInput('')}
-          />
-        </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Amount</Text>
+            <TextInput
+              ref={amountInputRef} // Attach the ref here
+              style={[styles.input, { borderBottomColor: focusedInput === 'amount' ? '#000' : '#ddd' }]}
+              placeholder="Enter amount"
+              value={amount}
+              onChangeText={(text) => {
+                setAmount(text);
+                if (text && !isNaN(text) && parseFloat(text) > 0) {
+                  setAmountError('');
+                }
+              }}
+              onFocus={() => setFocusedInput('amount')}
+              onBlur={() => setFocusedInput('')}
+              placeholderTextColor="#aaa"
+            />
+            {amountError ? <Text style={styles.errorText}>{amountError}</Text> : null}
+          </View>
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Remarks</Text>
@@ -281,6 +341,7 @@ const AddPaymentScreen = ({ route }) => {
             onChangeText={setDescription}
             onFocus={() => setFocusedInput('description')}
             onBlur={() => setFocusedInput('')}
+            placeholderTextColor="#aaa"
           />
         </View>
 
@@ -293,6 +354,7 @@ const AddPaymentScreen = ({ route }) => {
             onChangeText={setPaymentMethod}
             onFocus={() => setFocusedInput('paymentMethod')}
             onBlur={() => setFocusedInput('')}
+            placeholderTextColor="#aaa"
           />
         </View>
       </View>
@@ -303,12 +365,17 @@ const AddPaymentScreen = ({ route }) => {
           <Text style={styles.saveButtonText}>SAVE</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
 
 const styles = StyleSheet.create({
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 5,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

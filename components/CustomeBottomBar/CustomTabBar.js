@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, Animated, SafeAreaView, Dimensions } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, Animated, SafeAreaView, Dimensions,ScrollView,Image } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import IconM from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import Icon6 from 'react-native-vector-icons/FontAwesome6';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
-
+import bannerImage from '../images/banner.png'; // Update the path accordingly
+  
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 function CustomTabBar() {
@@ -131,28 +132,27 @@ function CustomTabBar() {
         />
       )}
 
+
+        
       <PanGestureHandler
         onGestureEvent={handleGestureEvent}
         onHandlerStateChange={handleStateChange}
       >
         <Animated.View style={[styles.popupMenu, { transform: [{ translateY }] }]}>
           <TouchableOpacity style={styles.handle} onPress={togglePopup} />
+          <ScrollView style={styles.scrollView}>
+
+          <View style={styles.banner}>
+             <Image source={bannerImage} style={styles.bannerImage} />
+          </View>
+
+
+
+
           <View style={styles.header}>
             <Text style={styles.headerText}>Reports</Text>
           </View>
           <View style={styles.menuGrid}>
-            <TouchableOpacity 
-              style={styles.menuItem} 
-              onPress={() => {
-                togglePopup();
-                handleTabPress('CustomerLedger');
-              }}
-            >
-              <View style={styles.iconBox}>
-                <IconM name="dots-grid" size={24} color={activeTab === 'CustomerLedger' ? '#000' : '#03a65a'} />
-              </View>
-              <Text style={styles.menuText}>Customer Ledger</Text>
-            </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => handleTabPress('BankTransfer')}>
               <View style={styles.iconBox}>
                 <Icon name="account-balance" size={24} color={activeTab === 'BankTransfer' ? '#000' : '#03a65a'} />
@@ -168,17 +168,55 @@ function CustomTabBar() {
             {/* Add more menu items as needed */}
           </View>
 
+
+
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Sales  </Text>
+          </View>
+          <View style={styles.menuGrid}>
+               <TouchableOpacity style={styles.menuItem} onPress={() => handleTabPress('CreateInvoice')}>
+                     <View style={styles.iconBox}>
+                       <Icon name="credit-card" size={24} color={activeTab === 'CreateInvoice' ? '#000' : '#03a65a'} />
+                      </View>
+                <Text style={styles.menuText}>Add Sale  </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuItem} onPress={() => handleTabPress('addPaymentScreen')}>
+                     <View style={styles.iconBox}>
+                       <Icon name="credit-card" size={24} color={activeTab === 'addPaymentScreen' ? '#000' : '#03a65a'} />
+                      </View>
+                <Text style={styles.menuText}>Add Payment </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuItem} onPress={() => handleTabPress('Invoices')}>
+                     <View style={styles.iconBox}>
+                       <Icon name="credit-card" size={24} color={activeTab === 'CreateInvoice' ? '#000' : '#03a65a'} />
+                      </View>
+                <Text style={styles.menuText}>Sale Report </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.menuItem} 
+                onPress={() => {
+                  togglePopup();
+                  handleTabPress('CustomerLedger');
+                }}
+              >
+              <View style={styles.iconBox}>
+                <IconM name="dots-grid" size={24} color={activeTab === 'CustomerLedger' ? '#000' : '#03a65a'} />
+              </View>
+              <Text style={styles.menuText}>Customer Ledger</Text>
+            </TouchableOpacity>
+
+
+          </View>        
+
           <View style={styles.header}>
             <Text style={styles.headerText}>Payments </Text>
           </View>
 
               <View style={styles.menuGrid}>
-              <TouchableOpacity style={styles.menuItem} onPress={() => handleTabPress('addPaymentScreen')}>
-                <View style={styles.iconBox}>
-                  <Icon name="credit-card" size={24} color={activeTab === 'addPaymentScreen' ? '#000' : '#03a65a'} />
-                </View>
-                <Text style={styles.menuText}>Add Payment </Text>
-              </TouchableOpacity>
+                  
               <TouchableOpacity style={styles.menuItem} onPress={() => handleTabPress('ListPayments')}>
                 <View style={styles.iconBox}>
                   <Icon name="credit-card" size={24} color={activeTab === 'ListPayments' ? '#000' : '#03a65a'} />
@@ -233,6 +271,7 @@ function CustomTabBar() {
                 </TouchableOpacity>
                 
               </View>
+              </ScrollView>
         </Animated.View>
       </PanGestureHandler>
 
@@ -264,6 +303,21 @@ function CustomTabBar() {
 }
 
 const styles = StyleSheet.create({
+  banner: {
+    width: '100%',
+    height: 100, // Adjust the height as needed
+    
+    borderRadius:10,
+    overflow: 'hidden',
+    marginBottom:15
+  },
+  bannerImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover', // Adjust if needed (cover, contain, etc.)
+  },
+
+  
   container: {
     flex: 1,
   },
@@ -273,7 +327,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    height: 70,
+    height: 60,
     alignItems: 'center',
     justifyContent: 'space-around',
     borderTopWidth: 1,
@@ -290,7 +344,8 @@ const styles = StyleSheet.create({
   },
   plusButtonContainer: {
     position: 'relative',
-    top: -35,
+    top: -30,
+    marginLeft:20
   },
   plusButton: {
     width: 70,
@@ -304,6 +359,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
+
+
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -318,7 +375,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFBFC',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    padding: 20,
+    padding: 15,
     height: SCREEN_HEIGHT * 0.8,
     paddingTop: 10,
     borderColor: '#e0e0e0',
@@ -334,11 +391,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   header: {
-    alignItems: 'center',
+    alignItems: 'left',
     marginBottom: 20,
   },
   headerText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
   },

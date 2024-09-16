@@ -41,7 +41,7 @@ export const syncUnsyncedPayments = async () => {
                   console.log('Unsynced payment found:', unsyncedPayment);
 
                   // Match customer name and find the ID
-                  const customer = storedCustomerData.find(cust => cust.clientname.trim() === unsyncedPayment.party_name.trim());
+                  const customer = storedCustomerData.find(cust => cust.clientname?.trim() === unsyncedPayment.party_name?.trim());
                   if (customer) {
                     unsyncedPayment.customer_id = customer.id;
                   } else {
@@ -59,6 +59,8 @@ export const syncUnsyncedPayments = async () => {
                     description: unsyncedPayment.description,
                     user_id: userId,
                     party_name: unsyncedPayment.party_name,
+                    transaction_type:unsyncedPayment.transaction_type,
+                    voucher_no:unsyncedPayment.voucher_no
                   };
 
                   // Try to save payment online via API

@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal, TouchableHig
 import { useFocusEffect } from '@react-navigation/native';
 import { fetchPaymentsOnline,loadPaymentsDataFromStorage } from '../database/payments/fetchPayments';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import Fthr from 'react-native-vector-icons/Feather';
 
 const ListPayments = ({ navigation }) => {
 
@@ -66,13 +67,24 @@ const ListPayments = ({ navigation }) => {
         keyExtractor={(item) => item.sr}
         renderItem={({ item }) => (
           <View style={styles.itemContainer}>
+            
+            <View style={styles.circle(item.transaction_type)}>
+            <Fthr 
+              name={item.transaction_type === 'out' ? 'arrow-up-right' : 'arrow-down-left'} 
+              size={20} 
+              color="#000" 
+              style={styles.arrowIcon} 
+            />
+          </View>
             <View style={styles.textContainer}>
               {/* <Text style={styles.invoiceNumberText}>#   {item.sr}</Text> */}
               <Text style={styles.dateText}>{item.manual_date}</Text>
               <Text style={styles.customerNameText}>{item.cname}</Text>
+              
               <Text style={styles.amountText}>
-                {item.amount   && !isNaN(item.amount) ? item.amount.toLocaleString(0) : 'N/A'}
+                Rs. {item.amount && !isNaN(item.amount) ? item.amount.toLocaleString() : 'N/A'}
               </Text>
+
             </View>
             <TouchableOpacity
               style={styles.moreOptionsButton}
@@ -220,6 +232,23 @@ const styles = StyleSheet.create({
   modalButtonText: {
     fontSize: 12,
     color: '#007BFF',
+  },
+
+
+  circle: (transaction_type) => ({
+    width: 25,
+    height: 25,
+    borderRadius: 20, // Make it a circle
+    backgroundColor: transaction_type === 'in' ? '#A8E6CF' : '#FFB3B3', // Green if payment_type is 'online', default otherwise
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10, // Space between the circle and text
+  }),
+
+  circleText: {
+    color: 'black',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });
 
