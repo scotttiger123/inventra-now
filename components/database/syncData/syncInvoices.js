@@ -5,6 +5,7 @@ import config from '../../config/config'; // Adjusted path to import config
 import NetInfo from '@react-native-community/netinfo'; // Import NetInfo for network checking
 import { loadCustomerDataFromStorage } from '..//customers/fetchCustomers';  // Adjust the import path as necessary
 import { fetchPaymentsOnline, loadPaymentsDataFromStorage,fetchPaymentsLocal } from '..//payments/fetchPayments'; // Adjust to correct path
+import { fetchInvoicesOnline,loadInvoicesDataFromStorage, calculateAsyncStorageSize } from '../invoices/fetchInvoicesOnline';
 
 // Function to sync unsynced payments (sync = 0)
 export const syncUnsyncedInvoices = async () => {
@@ -57,7 +58,7 @@ export const syncUnsyncedInvoices = async () => {
                   };
 
 
-                  // Try to save payment online via API
+                  // Try to save invoice online via API
                   try {
                     const response = await fetch(`${config.apiBaseUrl}/invoice/save`, {
                       method: 'POST',
@@ -102,6 +103,7 @@ export const syncUnsyncedInvoices = async () => {
                   }
                 }
                 fetchPaymentsOnline();
+                fetchInvoicesOnline();
                 resolve(); // All unsynced payments processed
 
               } else {

@@ -4,10 +4,12 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, FlatList, S
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fetchProductData, loadProductDataFromStorage } from '../database/products/fetchProducts';  // Adjust the import path as necessary
 import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AddItemScreen = ({ navigation, route }) => {
+  
   const { addItemToList = () => {} } = route.params || {};
-
+ 
   
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
@@ -26,6 +28,24 @@ const AddItemScreen = ({ navigation, route }) => {
   const [focusedInput, setFocusedInput] = useState(null);
   const [selectedProductId, setSelectedProductId] = useState(null);
 
+
+
+  // Load `isPercentage` from AsyncStorage when the component mounts
+  useEffect(() => {
+    const loadIsPercentageFromStorage = async () => {
+      try {
+        const storedValue = await AsyncStorage.getItem('isPercentage');
+        if (storedValue !== null) {
+          setIsPercentage(JSON.parse(storedValue)); // Convert back to boolean
+        }
+      } catch (error) {
+        console.error('Failed to load isPercentage:', error);
+      }
+    };
+
+    loadIsPercentageFromStorage();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
 
@@ -42,7 +62,18 @@ const AddItemScreen = ({ navigation, route }) => {
     }, []) // Re-run if dependencies (like route.params?.customer) change
   );
 
+// Save `isPercentage` to AsyncStorage whenever it changes
+const handleIsPercentageChange = async (value) => {
+  setIsPercentage(value);
+  console.log(value);
 
+  try {
+    await AsyncStorage.setItem('isPercentage', JSON.stringify(value)); // Save as a string
+  } catch (error) {
+    console.error('Failed to save isPercentage:', error);
+  }
+
+};
   const renderProductItem = ({ item }) => {
     const initial = item.product_name.charAt(0).toUpperCase(); // Get the first letter and make it uppercase
     
@@ -65,7 +96,7 @@ const AddItemScreen = ({ navigation, route }) => {
   const handleSelectProduct = (product) => {
 
     setProductName(product.product_name); // Set the selected customer name
-    setSelectedProductId(product.product_name);
+    setSelectedProductId(product.id);
     setFilteredProducts([]); // Clear the filtered list after selection
     console.log('Selected Customer:', product);
   };
@@ -86,16 +117,16 @@ const AddItemScreen = ({ navigation, route }) => {
 
 
   const handleSave = () => {
-
+    //uom.trim() === ''
     if (
       productName.trim() === '' ||
       isNaN(quantity) ||
       isNaN(price) ||
       quantity <= 0 ||
-      price <= 0 ||
-      uom.trim() === ''
+      price <= 0 
+      
     ) {
-      Alert.alert('Invalid Input', 'Please enter valid product details and select a UOM.');
+      Alert.alert('Invalid Input', 'Please enter valid product details');
       return;
     }
 
@@ -105,10 +136,13 @@ const AddItemScreen = ({ navigation, route }) => {
     }
 
     addItemToList({
+      isPercentage:isPercentage,
+      discount:discount,
+      system_product_id:selectedProductId,
       name: productName,
       quantity: parseInt(quantity),
       price: parseFloat(price),
-      discount: discountAmount,
+      discountAmount: discountAmount,
       uom,
     });
     
@@ -129,11 +163,16 @@ const AddItemScreen = ({ navigation, route }) => {
     }
 
     let discountAmount = parseFloat(discount);
-    if (isPercentage && discountAmount > 0) {
-      discountAmount = (discountAmount / 100) * parseFloat(price);
-    }
+
+      if (isPercentage && discountAmount > 0) {
+
+          discountAmount = (discountAmount / 100) * parseFloat(price);
+      }
 
     addItemToList({
+      isPercentage:isPercentage,
+      discount:discount,
+      system_product_id:selectedProductId,
       name: productName,
       quantity: parseInt(quantity),
       price: parseFloat(price),
@@ -260,12 +299,14 @@ const AddItemScreen = ({ navigation, route }) => {
         </View>
       )}
 
+
+
       <View style={styles.toggleContainer}>
         <Text style={styles.toggleLabel}>Discount in {isPercentage ? 'Percentage' : 'Value'}:</Text>
         <View style={styles.switchContainer}>
         <Switch
           value={isPercentage}
-          onValueChange={setIsPercentage}
+          onValueChange={handleIsPercentageChange}
           trackColor={{ false: '#767577', true: '#808080' }} // Gray background when switched on
           thumbColor={isPercentage ? '#00FF00' : '#f4f3f4'} // Green thumb when switched on
         />
@@ -439,7 +480,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: '#000',
     padding: 8,
-    borderRadius: 5,
+    borderRadius: 20,
     flex: 1,
     marginRight: 8,
     flexDirection: 'row',
@@ -451,7 +492,7 @@ const styles = StyleSheet.create({
   saveAndNewButton: {
     backgroundColor: '#25D366',
     padding: 8,
-    borderRadius: 5,
+    borderRadius: 20,
     flex: 1,
     marginLeft: 8,
     flexDirection: 'row',

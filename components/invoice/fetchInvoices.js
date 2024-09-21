@@ -46,7 +46,7 @@ const InvoiceList = ({ navigation }) => {
         onPress={() => navigation.navigate('CreateInvoice')}
       >
         <Icon name="add" size={20} color="#fff" />
-        <Text style={styles.buttonText}>ADD INVOICE</Text>
+        <Text style={styles.buttonText}>ADD SALE</Text>
       </TouchableOpacity>
     </View>
   );

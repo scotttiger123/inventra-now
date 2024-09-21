@@ -19,8 +19,6 @@ const saveInvoice = async (invoiceNo, date, customerName, customerId, items, dis
     total,
     
     
-    
-    
   };
 
   try {

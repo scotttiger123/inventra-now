@@ -21,6 +21,7 @@ import FetchInvoices from './components/invoice/fetchInvoices';
 import InvoiceDetails from './components/invoice/invoiceDetails';
 import AddPaymentScreen from './components/payments/addPaymentScreen';
 import ListPayments from './components/payments/listPayments';
+import EditItemScreen from './components/invoice/editItemScreen';
 
 
 const Stack = createStackNavigator();
@@ -57,6 +58,23 @@ function App() {
             component={HomeScreen}
             options={{ headerShown: false }}
           />
+          <Stack.Screen
+            name="EditItemScreen"
+            component={EditItemScreen}
+            options={({ navigation }) => ({
+              headerShown: true,
+              headerLeft: () => (
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerLeft}>
+                  <Icon name="arrow-back" size={24} color={themeColor} />
+                </TouchableOpacity>
+              ),
+              headerTitle: 'Edit Item Screen',
+              headerTitleStyle: styles.headerTitle,
+              headerStyle: styles.header,
+            })}
+          />
+
+
           <Stack.Screen
             name="CreateInvoice"
             component={CreateInvoice}

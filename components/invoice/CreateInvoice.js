@@ -20,10 +20,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import DashedLine from 'react-native-dashed-line';
 
 
-
-
-
-
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 
@@ -46,6 +42,7 @@ const CreateInvoice = () => {
   const [focusedInput, setFocusedInput] = useState('');
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [discountTotal, setDiscountTotal] = useState(false);
   
   const route = useRoute();
   
@@ -94,10 +91,37 @@ const CreateInvoice = () => {
     hideDatePicker();
   };
   
-  const addItemToList = (newItem) => {
+    const addItemToList = (newItem) => {
+    // Add the new item to the list
     setItems([...items, { ...newItem, id: items.length + 1 }]);
-    setTotal(total + newItem.quantity * newItem.price);
+  
+    let discountAmount = 0;
+    let itemTotal = 0;
+  
+    // Check if the discount is a percentage
+    if (newItem.isPercentage) {
+      discountAmount = (newItem.price * newItem.discount) / 100; // Calculate percentage discount
+      itemTotal = newItem.quantity * (newItem.price - discountAmount); // Calculate item total after percentage discount
+    } else {
+      discountAmount = newItem.discount; // Fixed discount
+      itemTotal = newItem.quantity * (newItem.price - discountAmount); // Calculate item total after fixed discount
+    }
+  
+    // Update the total
+    setTotal(total + itemTotal);
+  
+    // Update the total discounted amount
+    setDiscountTotal(discountTotal + newItem.quantity * discountAmount); // Track total discount applied
   };
+
+
+  const updateItemInList = (updatedItem) => {
+    console.log("updateITem:",updatedItem);
+    setItems((prevItems) =>
+      prevItems.map((item) => (item.id === updatedItem.id ? updatedItem : item))
+    );
+  };
+  
   
   const generateVoucherWithTimestamp = () => {
     const timestamp = new Date(); // Current date and time
@@ -134,6 +158,7 @@ const CreateInvoice = () => {
   
   
   const renderCustomerItem = ({ item }) => {
+    
     const initial = item.clientname.charAt(0).toUpperCase(); // Get the first letter and make it uppercase
     
     return (
@@ -235,11 +260,16 @@ const CreateInvoice = () => {
     setRemarks('');
     // Set focus to customerName field after resetting
     if (customerNameRef.current) {
+
       customerNameRef.current.focus();
+
     }
 
   };
-  
+  const handleItemPress = (item) => {
+    navigation.navigate('EditItemScreen', { itemToEdit: item, onItemUpdate: updateItemInList });
+  };
+
   return (
     <View style={styles.container}>
       {/* Invoice Details Section */}
@@ -259,9 +289,7 @@ const CreateInvoice = () => {
           />
         </View>
         <View style={[styles.inputContainer, styles.inputContainerHalf , focusedInput === 'date' && styles.inputFocused ]}>
-          
             <TouchableOpacity onPress={() => showDatePicker(true)}>
-            
               <Icon name="calendar" size={20} color="#888" style={styles.icon} />
             </TouchableOpacity>
 
@@ -327,14 +355,14 @@ const CreateInvoice = () => {
       {/* Add Items Section */}
       <View style={styles.section}>
         <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddItemScreen', { addItemToList })}>
-          <IconM name="plus-circle" size={72} color="#007bff" style={styles.addIcon} />
+          <IconM name="plus-circle" size={2} color="#fff" style={styles.addIcon} />
           <Text style={styles.buttonText}>Add Item</Text>
         </TouchableOpacity>
       </View>
 
 
 
-  <View style={styles.itemContainer}>
+<View style={styles.itemContainer}>
   <ScrollView contentContainerStyle={styles.scrollContainer}>
     <View style={styles.itemsSection}>
       {items.length === 0 ? (
@@ -357,7 +385,11 @@ const CreateInvoice = () => {
             const discountedPrice = originalPrice - discountValue;
 
             return (
-              <View key={item.id.toString()} style={styles.itemRow}>
+                 <TouchableOpacity
+                    key={item.id.toString()}
+                    onPress={() => handleItemPress(item)} // Navigate on press
+                    style={styles.itemRow}
+                  >
                 <View style={styles.itemTextContainer}>
                   <Text style={styles.itemName}>{item.name}</Text>
                   <Text style={styles.itemDetailText}>
@@ -378,7 +410,9 @@ const CreateInvoice = () => {
                       </Text>
                     )}
                   </Text>
+                  <View style={styles.line} /> 
                   {discountValue > 0 && (
+                    
                     <Text style={styles.discountText}>
                       {item.isPercentage
                         ? `(${item.discount}% off)`
@@ -392,19 +426,26 @@ const CreateInvoice = () => {
                     {(item.quantity * discountedPrice).toLocaleString()}
                   </Text>
                 </Text>
-              </View>
+              </TouchableOpacity>
+              
+              
             );
           })}
+          
+          {discountTotal > 0 && (
+            <View>
+            <Text style={styles.discountPrice}>Discount Rs.  {discountTotal.toFixed(2)}</Text>
+          </View>
+          )}
         </ScrollView>
       )}
     </View>
   </ScrollView>
-
+  </View>
 
         {/* Remarks input field and image upload button */}
-        <View style={[styles.inputContainer, styles.inputContainerHalf , focusedInput === 'remark' && styles.inputFocused ]}>
-          
-          
+        
+        {/* <View style={[styles.inputContainer, styles.inputContainerHalf , focusedInput === 'remark' && styles.inputFocused ]}>
           <TextInput
             style={styles.input}
             value={remarks}
@@ -414,11 +455,8 @@ const CreateInvoice = () => {
             onBlur={()   => setFocusedInput('')}
             onChangeText={setRemarks}
           />
-          <TouchableOpacity style={styles.uploadButton}>
-            <Entypo name="attachment" size={20} color="#333" style={styles.icon} />
-          </TouchableOpacity>
-        </View>
-      </View>
+        </View> */}
+      
 
       {/* Summary Section */}
       <View style={styles.summarySection}>
@@ -503,12 +541,16 @@ const CreateInvoice = () => {
 };
 
 const styles = StyleSheet.create({
+  line: {
+    height: 1, // Thickness of the line
+    backgroundColor: '#CCCCCC', // Line color (adjust to your preference)
+    marginVertical: 10, // Space around the line (adjust as needed)
+  },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
     borderBottomColor: 'green',
-    
     borderRadius: 1
   },
 
@@ -653,6 +695,11 @@ const styles = StyleSheet.create({
     color: 'gray',
     fontSize: 12,
   },
+  discountPrice: {
+    color: 'gray',
+    fontSize: 12,
+  },
+
   discountText: {
     color: 'red', // Highlight discount in red
     fontSize: 12,
@@ -722,25 +769,34 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   addButton: {
-    backgroundColor: 'transparent', // No background color
-    borderRadius: 5,
+    backgroundColor: 'black', // No background color
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
+    borderColor: 'black',
+    borderWidth: 0.5,
+    borderColor: 'black',
+    padding: 1,
+    marginLeft:5,
+    marginRight:5,
     justifyContent: 'center',
+    color: '#00CC00', // Green color for discounted price
+    borderRadius: 25,           // Rounded corners, adjust value for more/less rounding
+    alignItems: 'center',       // Center align content
+    justifyContent: 'center',   // Center content vertically
+    
   },
   addIcon: {
     marginRight: 10,
-    fontSize: 30, // Increase the icon size
+    fontSize: 26, // Increase the icon size
   },
   buttonText: {
-    color: '#000',
+    color: '#fff', // Green color for discounted price
     fontSize: 12, // Consistent font size
     marginLeft: 8,
   },
   itemContainer: {
     flex: 1,
-    marginBottom: 20,
+    marginBottom: 2,
   },
   itemsSection: {
     flex: 1,
