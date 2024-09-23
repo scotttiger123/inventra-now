@@ -19,6 +19,7 @@ const InvoiceList = ({ navigation }) => {
          
           const sortedInvoices = data.sort((a, b) => new Date(b.order_date) - new Date(a.order_date));
           setInvoices(data);
+          console.log(data);
         })
         .catch(error => console.error('Failed to load invoices:', error))
         .finally(() => setLoading(false)); // Stop loading when data is fetched

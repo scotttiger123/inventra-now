@@ -136,6 +136,7 @@ const handleIsPercentageChange = async (value) => {
     }
 
     addItemToList({
+      
       isPercentage:isPercentage,
       discount:discount,
       system_product_id:selectedProductId,

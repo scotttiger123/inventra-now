@@ -150,27 +150,6 @@ function CustomTabBar() {
 
 
           <View style={styles.header}>
-            <Text style={styles.headerText}>Reports</Text>
-          </View>
-          <View style={styles.menuGrid}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleTabPress('BankTransfer')}>
-              <View style={styles.iconBox}>
-                <Icon name="account-balance" size={24} color={activeTab === 'BankTransfer' ? '#000' : '#03a65a'} />
-              </View>
-              <Text style={styles.menuText}>Bank Transfer</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => handleTabPress('CNICTransfer')}>
-              <View style={styles.iconBox}>
-                <Icon name="credit-card" size={24} color={activeTab === 'CNICTransfer' ? '#000' : '#03a65a'} />
-              </View>
-              <Text style={styles.menuText}>CNIC Transfer</Text>
-            </TouchableOpacity>
-            {/* Add more menu items as needed */}
-          </View>
-
-
-
-          <View style={styles.header}>
             <Text style={styles.headerText}>Sales  </Text>
           </View>
           <View style={styles.menuGrid}>
@@ -238,6 +217,27 @@ function CustomTabBar() {
                 </TouchableOpacity>
                 
               </View>    
+
+          <View style={styles.header}>
+            <Text style={styles.headerText}>Reports</Text>
+          </View>
+          <View style={styles.menuGrid}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleTabPress('BankTransfer')}>
+              <View style={styles.iconBox}>
+                <Icon name="account-balance" size={24} color={activeTab === 'BankTransfer' ? '#000' : '#03a65a'} />
+              </View>
+              <Text style={styles.menuText}>Bank Transfer</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleTabPress('CNICTransfer')}>
+              <View style={styles.iconBox}>
+                <Icon name="credit-card" size={24} color={activeTab === 'CNICTransfer' ? '#000' : '#03a65a'} />
+              </View>
+              <Text style={styles.menuText}>CNIC Transfer</Text>
+            </TouchableOpacity>
+            {/* Add more menu items as needed */}
+          </View>
+
+
 
 
           <View style={styles.header}>

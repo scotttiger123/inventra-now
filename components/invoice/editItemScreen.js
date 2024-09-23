@@ -22,6 +22,7 @@ const EditItemScreen = ({ navigation, route }) => {
   const [productName, setProductName] = useState(itemToEdit?.name || '');
   const [products, setProducts] = useState(itemToEdit?.name || '');
   const [selectedProductId, setSelectedProductId] = useState(itemToEdit?.system_product_id || null);
+  const [filteredProducts, setFilteredProducts] = useState([]); // State for filtered customers
 
   useEffect(() => {
     const loadIsPercentageFromStorage = async () => {
@@ -60,6 +61,46 @@ const EditItemScreen = ({ navigation, route }) => {
     }
   };
 
+
+  const handleSelectProduct = (product) => {
+
+    setProductName(product.product_name); // Set the selected customer name
+    setSelectedProductId(product.id);
+    setFilteredProducts([]); // Clear the filtered list after selection
+    console.log('Selected Customer:', product);
+  };
+
+  const handleCProductSearch = (text) => {
+    setProductName(text);
+    if (text.length > 0) {
+      // Filter customers based on search text
+      const filteredData = products.filter(product =>
+        product.product_name.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredProducts(filteredData);
+    } else {
+      setFilteredProducts([]); // Clear the filtered list when input is cleared
+    }
+  };
+  const renderProductItem = ({ item }) => {
+    const initial = item.product_name.charAt(0).toUpperCase(); // Get the first letter and make it uppercase
+    
+    return (
+      <TouchableOpacity
+        style={styles.customerItem}
+        onPress={() => handleSelectProduct(item)}
+      >
+        <View style={styles.circle}>
+          <Text style={styles.circleText}>{initial}</Text>
+        </View>
+        <View style={styles.customerInfo}>
+          <Text style={styles.customerText}>{item.product_name} - {item.quantity} </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+
   const handleSave = () => {
     if (
       productName.trim() === '' ||
@@ -76,7 +117,8 @@ const EditItemScreen = ({ navigation, route }) => {
     if (isPercentage && discountAmount > 0) {
       discountAmount = (discountAmount / 100) * parseFloat(price);
     }
-  
+
+    console.log("selected Product", selectedProductId);
     // Create the updated item object
     const updatedItem = {
       id: itemToEdit.id,
@@ -108,9 +150,20 @@ const EditItemScreen = ({ navigation, route }) => {
         style={styles.input}
         placeholder="Enter Product Name"
         value={productName}
-        onChangeText={setProductName}
+        onChangeText={handleCProductSearch} // Updated to handle search
       />
-
+      {/* Display Filtered Customer List */}
+      {filteredProducts.length > 0 && (
+        <View style={styles.customerListContainer}>
+          <FlatList
+            data={filteredProducts}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderProductItem}
+            style={styles.customerList}
+          />
+          
+        </View>
+      )}
       <Text style={styles.label}>Quantity</Text>
       <TextInput
         style={styles.input}
